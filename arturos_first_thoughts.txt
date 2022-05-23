@@ -1,0 +1,13 @@
+Comparing the csv package to using pandas
+
+Thoughts on csv package:
+Kind of clunky, lots of syntax, seems very manual (had to manually add the extra commas for a line that didn't use every column) but that implies a certain granularity that might be useful since our output isn't consistent.
+That is our output doesn't map well to a single table - when we're talking curriculum and so on the it makes no sense to call the 5th column prerequisites.
+Remains to be seen if we can *APPEND* csv stuff. Replacing seems harder than with pandas. Has a dictionary thing so that might be useful.
+
+Thoughts on pandas:
+Kind of annoying to install. Easy syntax. Replacing values seems easier. Loss of granularity - treated whole csv as one dataframe. It had to give names
+to the columns so it just grabbed the first row, which is a problem for a few reasons:
+1) That's not what they are - the first row is already data.
+2) That row becomes inaccessible (print df.iloc[0] prints the degree plan row...)
+3) It writes unnamed in all the entries after curriculum and computerscience instead of just ,,,,,,...

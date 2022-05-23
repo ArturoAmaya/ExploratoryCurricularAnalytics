@@ -1,0 +1,57 @@
+Curriculum,Computer Science,Unnamed: 2,Unnamed: 3,Unnamed: 4,Unnamed: 5,Unnamed: 6,Unnamed: 7,Unnamed: 8,Unnamed: 9,Unnamed: 10
+Degree Plan,Computer Science/ Muir,,,,,,,,,
+Institution,"University of California, San Diego",,,,,,,,,
+Degree Type,BS,,,,,,,,,
+System Type,Quarter,,,,,,,,,
+CIP,,,,,,,,,,
+Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+1,CSE 8A,CSE,8A,,,,4,,,1
+2,MATH 20A,MATH,20A,,,,4,,,1
+3,CSE 8B,CSE,8B,1,,,4,,,2
+4,MATH 20B,MATH,20B,2,,,4,,,2
+5,MATH 20C,MATH,20C,2;4,,,4,,,3
+6,CSE 20,CSE,20,1;3,,,4,,,3
+7,CSE 15L,CSE,15L,,,,2,,,3
+8,CSE 12,CSE,12,,,,4,,,3
+9,CSE 30,CSE,30,8;7,,,4,,,4
+10,CSE 21,CSE,21,6,,,4,,,4
+11,CSE 105,CSE,105,,,,4,,,5
+12,CSE 100,CSE,100,7;8;9;10,,,4,,,5
+13,MATH 18,MATH,18,,,,4,,,6
+14,CSE 101,CSE,101,12,,,4,,,6
+15,CSE 110,CSE,110,,,,4,,,6
+16,CSE 140L,CSE,140L,,,,2,,,7
+17,CSE 140,CSE,140,,,,4,,,7
+18,CSE 103,CSE,103,2;4;10,,,4,,,7
+19,CSE 141L,CSE,141L or 142L,9;12;16;17,,,2,,,8
+20,CSE 141L,CSE,141 or 142,9;12;16;17,,,4,,,8
+21,CSE 197,CSE,197/Elective,,,,4,,,10
+22,CSE Gen Sci 1,CSE,,,,,4,,,4
+23,CSE Gen Sci 2,CSE,,,,,4,,,5
+24,Elective/Tech E1,CSE,,,,,4,,,12
+25,Elective/Tech E2,CSE,,,,,4,,,12
+26,CSE Elective 1,CSE,,,,,4,,,9
+27,CSE Elective 2,CSE,,,,,4,,,10
+28,CSE Elective 3,CSE,,,,,4,,,11
+29,CSE Elective 4,CSE,,,,,4,,,11
+30,SYSTEMS/NETW,,,,,,4,,,8
+31,LANG/DATABASES,,,,,,4,,,9
+32,LEARN VISION GRAPH,,,,,,4,,,9
+33,SECURITY CRYPTOGR,,,,,,4,,,10
+Additional Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+34,MCWP 40,MCWP,40,,,,4,,,1
+35,MCWP 50,MCWP,50,34,,,4,,,2
+36,DEI,DEI,,,,,4,,,11
+37,GE1,GE,,,,,4,,,1
+38,GE2,GE,,,,,4,,,2
+39,GE3,GE,,,,,4,,,4
+40,GE4,GE,,,,,4,,,5
+41,GE5,GE,,,,,4,,,6
+42,GE6,GE,,,,,4,,,7
+43,GE7,GE,,,,,4,,,7
+44,GE8,GE,,,,,4,,,8
+45,GE9,GE,,,,,4,,,9
+46,Elec1,ELECTIVE,,,,,2,,,3
+47,Elec2,ELECTIVE,,,,,4,,,12
