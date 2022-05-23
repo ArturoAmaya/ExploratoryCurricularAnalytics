@@ -11,3 +11,6 @@ to the columns so it just grabbed the first row, which is a problem for a few re
 1) That's not what they are - the first row is already data.
 2) That row becomes inaccessible (print df.iloc[0] prints the degree plan row...)
 3) It writes unnamed in all the entries after curriculum and computerscience instead of just ,,,,,,...
+
+
+Another possibility: macros/basic for application directly in an excel file... no need to load into memory/reformat... i have no idea how that works...
