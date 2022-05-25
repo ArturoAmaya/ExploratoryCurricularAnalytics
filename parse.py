@@ -6,16 +6,20 @@ Exports:
     `prereqs`, a dictionary mapping from a subject code-number tuple to a list
     of prerequisites, which are each lists of possible course codes to satisfy
     the requirement.
+
+    `academic_plans`, a list of `Major`s, which contains a dictionary mapping
+    college codes to `Plan`s, which have a list of list of `PlannedCourse`s for
+    each quarter.
 """
 
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Tuple
 
 Course = Tuple[str, str]
 
 
 def read_csv_from(
-    path: str, not_found_msg: Optional[str], strip: Optional[bool] = False
+    path: str, not_found_msg: Optional[str] = None, strip: Optional[bool] = False
 ) -> List[List[str]]:
     """
     Reads and parses the file at the given path as a CSV file.
@@ -75,27 +79,124 @@ def read_csv_from(
     return rows
 
 
-prereq_rows = read_csv_from(
-    "./files/prereqs.csv",
-    "There is no prereqs.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
-    strip=True,
+def prereq_rows_to_dict(rows: List[List[str]]) -> Dict[Course, List[List[Course]]]:
+    """
+    Converts prerequisite rows from a CSV to a dictionary mapping between
+    courses and the prerequisites.
+
+    The dictionary values are lists of lists. The outer list is a list of
+    requirements, like an AND, while each inner list is a list of possible
+    courses to satisfy the requirement, like an OR.
+    """
+    prereqs: Dict[Course, List[List[Course]]] = {}
+    for subject, number, prereq_id, pre_sub, pre_num, _ in rows[1:]:
+        # NOTE: Currently ignoring "Allow concurrent registration?" because I don't
+        # know what to do with it
+        course: Course = subject, number
+        prereq: Course = pre_sub, pre_num
+        if course not in prereqs:
+            prereqs[course] = []
+        index = int(prereq_id) - 1
+        while len(prereqs[course]) <= index:
+            prereqs[course].append([])
+        # Could probably include the allow concurrent registration info here
+        prereqs[course][index].append(prereq)
+    return prereqs
+
+
+class PlannedCourse:
+    """
+    Represents a course in an academic plan.
+    """
+
+    course: str
+    units: float
+    type: Literal["COLLEGE", "DEPARTMENT"]
+    overlaps_ge: bool
+
+    def __init__(
+        self,
+        course: str,
+        units: float,
+        type: Literal["COLLEGE", "DEPARTMENT"],
+        overlaps_ge: bool,
+    ) -> None:
+        self.course = course
+        self.units = units
+        self.type = type
+        self.overlaps_ge = overlaps_ge
+
+
+class Plan:
+    """
+    Represents a college-specific academic plan.
+    """
+
+    quarters: List[List[PlannedCourse]]
+
+    def __init__(self, quarters: Optional[List[List[PlannedCourse]]] = None) -> None:
+        # https://stackoverflow.com/a/33990699
+        self.quarters = [[] for _ in range(12)] if quarters is None else quarters
+
+
+class Major:
+    """
+    Represents a major. Contains plans for each college.
+    """
+
+    department: str
+    major: str
+    plans: Dict[str, Plan]
+
+    def __init__(
+        self, department: str, major: str, plans: Optional[Dict[str, Plan]] = None
+    ) -> None:
+        self.department = department
+        self.major = major
+        self.plans = {} if plans is None else plans
+
+
+def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
+    majors: Dict[str, Major] = {}
+    for (
+        dept,
+        major,
+        college,
+        course,
+        units,
+        c_type,
+        overlap,
+        _,
+        year,
+        qtr,
+        _,
+    ) in rows[1:]:
+        if major not in majors:
+            majors[major] = Major(dept, major)
+        if college not in majors[major].plans:
+            majors[major].plans[college] = Plan()
+        quarter = (int(year) - 1) * 3 + int(qtr) - 1
+        if c_type != "COLLEGE" and c_type != "DEPARTMENT":
+            raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
+        majors[major].plans[college].quarters[quarter].append(
+            PlannedCourse(course, float(units), c_type, overlap == "Y")
+        )
+    return list(majors.values())
+
+
+prereqs = prereq_rows_to_dict(
+    read_csv_from(
+        "./files/prereqs.csv",
+        "There is no prereqs.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
+        strip=True,
+    )[1:]
 )
-prereqs: Dict[Course, List[List[Course]]] = {}
-for subject, number, prereq_id, pre_sub, pre_num, _ in prereq_rows[1:]:
-    # NOTE: Currently ignoring "Allow concurrent registration?" because I don't
-    # know what to do with it
-    course: Course = subject, number
-    prereq: Course = pre_sub, pre_num
-    if course not in prereqs:
-        prereqs[course] = []
-    index = int(prereq_id) - 1
-    while len(prereqs[course]) <= index:
-        prereqs[course].append([])
-    # Could probably include the allow concurrent registration info here
-    prereqs[course][index].append(prereq)
 
 
-academic_plans = read_csv_from(
-    "./files/academic_plans.csv",
-    "There is no academic_plans.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
+academic_plans = plan_rows_to_plans(
+    read_csv_from(
+        "./files/academic_plans.csv",
+        "There is no academic_plans.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
+        strip=True,
+    )[1:]
 )
