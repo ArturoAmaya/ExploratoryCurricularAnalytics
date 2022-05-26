@@ -7,9 +7,9 @@ Exports:
     of prerequisites, which are each lists of possible course codes to satisfy
     the requirement.
 
-    `academic_plans`, a list of `Major`s, which contains a dictionary mapping
-    college codes to `Plan`s, which have a list of list of `PlannedCourse`s for
-    each quarter.
+    `majors`, a list of `Major`s, which contains a dictionary mapping college
+    codes to `Plan`s, which have a list of list of `PlannedCourse`s for each
+    quarter.
 """
 
 
@@ -126,10 +126,11 @@ class PlannedCourse:
     ) -> None:
         self.course = course
         self.units = units
-        # Is this a safe assumption, that if there's a GE/major overlap that
-        # it's both a DEPARTMENT- and COURSE-type course?
-        self.type = "DEPARTMENT" if overlaps_ge else type
+        self.type = type
         self.overlaps_ge = overlaps_ge
+
+    def __repr__(self) -> str:
+        return f"PlannedCourse(course={repr(self.course)}, units={repr(self.units)}, type={repr(self.type)}, overlaps_ge={repr(self.overlaps_ge)})"
 
 
 class Plan:
@@ -143,6 +144,9 @@ class Plan:
     def __init__(self, quarters: Optional[List[List[PlannedCourse]]] = None) -> None:
         # https://stackoverflow.com/a/33990699
         self.quarters = [[] for _ in range(12)] if quarters is None else quarters
+
+    def __repr__(self) -> str:
+        return f"Plan(quarters={repr(self.quarters)})"
 
 
 class Major:
@@ -178,10 +182,17 @@ class Major:
         # Arbitrarily using Revelle
         return Plan(
             [
-                [course for course in quarter if course.type == "DEPARTMENT"]
+                [
+                    course
+                    for course in quarter
+                    if course.type == "DEPARTMENT" or course.overlaps_ge
+                ]
                 for quarter in self.plans["RE"].quarters
             ]
         )
+
+    def __repr__(self) -> str:
+        return f"Major(department={repr(self.department)}, major={repr(self.major)}, plans={repr(self.plans)})"
 
 
 def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
@@ -223,11 +234,14 @@ prereqs = prereq_rows_to_dict(
     )[1:]
 )
 
-
-academic_plans = plan_rows_to_plans(
+majors = plan_rows_to_plans(
     read_csv_from(
         "./files/academic_plans.csv",
         "There is no academic_plans.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
         strip=True,
     )[1:]
 )
+
+if __name__ == "__main__":
+    print(prereqs["CAT", "1"])
+    print(next(major for major in majors if major.major == "CS26").curriculum())
