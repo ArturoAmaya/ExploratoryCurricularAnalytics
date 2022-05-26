@@ -16,6 +16,7 @@ Exports:
 from typing import Dict, List, Literal, Optional, Tuple
 
 Course = Tuple[str, str]
+Prerequisite = Tuple[Course, bool]
 
 
 def read_csv_from(
@@ -79,7 +80,9 @@ def read_csv_from(
     return rows
 
 
-def prereq_rows_to_dict(rows: List[List[str]]) -> Dict[Course, List[List[Course]]]:
+def prereq_rows_to_dict(
+    rows: List[List[str]],
+) -> Dict[Course, List[List[Prerequisite]]]:
     """
     Converts prerequisite rows from a CSV to a dictionary mapping between
     courses and the prerequisites.
@@ -88,12 +91,12 @@ def prereq_rows_to_dict(rows: List[List[str]]) -> Dict[Course, List[List[Course]
     requirements, like an AND, while each inner list is a list of possible
     courses to satisfy the requirement, like an OR.
     """
-    prereqs: Dict[Course, List[List[Course]]] = {}
-    for subject, number, prereq_id, pre_sub, pre_num, _ in rows[1:]:
+    prereqs: Dict[Course, List[List[Prerequisite]]] = {}
+    for subject, number, prereq_id, pre_sub, pre_num, allow_concurrent in rows[1:]:
         # NOTE: Currently ignoring "Allow concurrent registration?" because I don't
         # know what to do with it
         course: Course = subject, number
-        prereq: Course = pre_sub, pre_num
+        prereq: Prerequisite = (pre_sub, pre_num), allow_concurrent == "Y"
         if course not in prereqs:
             prereqs[course] = []
         index = int(prereq_id) - 1
@@ -123,13 +126,16 @@ class PlannedCourse:
     ) -> None:
         self.course = course
         self.units = units
-        self.type = type
+        # Is this a safe assumption, that if there's a GE/major overlap that
+        # it's both a DEPARTMENT- and COURSE-type course?
+        self.type = "DEPARTMENT" if overlaps_ge else type
         self.overlaps_ge = overlaps_ge
 
 
 class Plan:
     """
-    Represents a college-specific academic plan.
+    Represents a college-specific academic plan. Can be used to create degree
+    plans for Curricular Analytics.
     """
 
     quarters: List[List[PlannedCourse]]
@@ -142,6 +148,9 @@ class Plan:
 class Major:
     """
     Represents a major. Contains plans for each college.
+
+    To get the plan for a specific college, use the two-letter college code. For
+    example, `plans["FI"]` contains the academic plan for ERC (Fifth College).
     """
 
     department: str
@@ -155,8 +164,30 @@ class Major:
         self.major = major
         self.plans = {} if plans is None else plans
 
+    def curriculum(self) -> Plan:
+        """
+        Creates an academic plan with college-specific courses removed. Can be
+        used to create a curriculum for Curricular Analytics.
+
+        Assumes that the department plans are the same for all colleges. It
+        might be worth checking if that's actually the case.
+
+        The `overlaps_ge` attribute for these courses should be ignored (because
+        there is no college whose GEs the course overlaps with).
+        """
+        # Arbitrarily using Revelle
+        return Plan(
+            [
+                [course for course in quarter if course.type == "DEPARTMENT"]
+                for quarter in self.plans["RE"].quarters
+            ]
+        )
+
 
 def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
+    """
+    Converts the academic plans CSV rows into a list of `Major` objects.
+    """
     majors: Dict[str, Major] = {}
     for (
         dept,
