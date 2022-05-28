@@ -7,9 +7,9 @@ Exports:
     of prerequisites, which are each lists of possible course codes to satisfy
     the requirement.
 
-    `majors`, a list of `Major`s, which contains a dictionary mapping college
-    codes to `Plan`s, which have a list of list of `PlannedCourse`s for each
-    quarter.
+    `majors`, a dictionary mapping from ISIS major codes to `Major` objects,
+    which contains a dictionary mapping college codes to `Plan`s, which have a
+    list of list of `PlannedCourse`s for each quarter.
 """
 
 
@@ -20,7 +20,7 @@ Prerequisite = Tuple[Course, bool]
 
 
 def read_csv_from(
-    path: str, not_found_msg: Optional[str] = None, strip: Optional[bool] = False
+    path: str, not_found_msg: Optional[str] = None, strip: bool = False
 ) -> List[List[str]]:
     """
     Reads and parses the file at the given path as a CSV file.
@@ -168,16 +168,18 @@ class Major:
         self.major = major
         self.plans = {} if plans is None else plans
 
-    def curriculum(self) -> Plan:
+    def curriculum(self, college: str = "RE") -> Plan:
         """
         Creates an academic plan with college-specific courses removed. Can be
         used to create a curriculum for Curricular Analytics.
 
-        Assumes that the department plans are the same for all colleges. It
-        might be worth checking if that's actually the case.
-
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
+
+        Assumes that the department plans are the same for all colleges. It
+        might be worth checking if that's actually the case. By default, it
+        arbitrarily uses Revelle's college plan, but you can specify a college
+        code in `college` to base the degree plan off a different college.
         """
         # Arbitrarily using Revelle
         return Plan(
@@ -187,7 +189,7 @@ class Major:
                     for course in quarter
                     if course.type == "DEPARTMENT" or course.overlaps_ge
                 ]
-                for quarter in self.plans["RE"].quarters
+                for quarter in self.plans[college].quarters
             ]
         )
 
@@ -195,9 +197,10 @@ class Major:
         return f"Major(department={repr(self.department)}, major={repr(self.major)}, plans={repr(self.plans)})"
 
 
-def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
+def plan_rows_to_plans(rows: List[List[str]]) -> Dict[str, Major]:
     """
-    Converts the academic plans CSV rows into a list of `Major` objects.
+    Converts the academic plans CSV rows into a dictionary of major codes to
+    `Major` objects.
     """
     majors: Dict[str, Major] = {}
     for (
@@ -223,7 +226,7 @@ def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
         majors[major].plans[college].quarters[quarter].append(
             PlannedCourse(course, float(units), c_type, overlap == "Y")
         )
-    return list(majors.values())
+    return majors
 
 
 prereqs = prereq_rows_to_dict(
@@ -244,4 +247,4 @@ majors = plan_rows_to_plans(
 
 if __name__ == "__main__":
     print(prereqs["CAT", "1"])
-    print(next(major for major in majors if major.major == "CS26").curriculum())
+    print(majors["CS26"].curriculum())
