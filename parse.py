@@ -143,7 +143,8 @@ class Plan:
 
     def __init__(self, quarters: Optional[List[List[PlannedCourse]]] = None) -> None:
         # https://stackoverflow.com/a/33990699
-        self.quarters = [[] for _ in range(12)] if quarters is None else quarters
+        self.quarters = [[]
+                         for _ in range(12)] if quarters is None else quarters
 
     def __repr__(self) -> str:
         return f"Plan(quarters={repr(self.quarters)})"
@@ -168,7 +169,7 @@ class Major:
         self.major = major
         self.plans = {} if plans is None else plans
 
-    def curriculum(self) -> Plan:
+    def curriculum(self, college: str) -> Plan:
         """
         Creates an academic plan with college-specific courses removed. Can be
         used to create a curriculum for Curricular Analytics.
@@ -187,7 +188,7 @@ class Major:
                     for course in quarter
                     if course.type == "DEPARTMENT" or course.overlaps_ge
                 ]
-                for quarter in self.plans["RE"].quarters
+                for quarter in self.plans[college].quarters
             ]
         )
 
@@ -219,7 +220,8 @@ def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
             majors[major].plans[college] = Plan()
         quarter = (int(year) - 1) * 3 + int(qtr) - 1
         if c_type != "COLLEGE" and c_type != "DEPARTMENT":
-            raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
+            raise TypeError(
+                'Course type is neither "COLLEGE" nor "DEPARTMENT"')
         majors[major].plans[college].quarters[quarter].append(
             PlannedCourse(course, float(units), c_type, overlap == "Y")
         )
@@ -243,5 +245,12 @@ majors = plan_rows_to_plans(
 )
 
 if __name__ == "__main__":
-    print(prereqs["CAT", "1"])
-    print(next(major for major in majors if major.major == "CS26").curriculum())
+    #print(prereqs["CAT", "1"])
+    #print(next(major for major in majors if major.major == "CS26").curriculum())
+    #print(prereqs["MATH", "109"])
+    #print(prereqs["MATH", "109"][0][0])
+    print(majors[0].curriculum("FI"))
+    print(majors[0].curriculum("MU"))
+    print(repr(majors[0].curriculum("RE")) == repr(majors[0].curriculum("MU")))
+    # print(majors[0].curriculum("RE").quarters[0] ==
+    # majors[0].curriculum("MU").quarters[0])
