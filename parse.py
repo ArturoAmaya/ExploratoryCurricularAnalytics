@@ -15,7 +15,7 @@ Exports:
     objects, which contains data from the ISIS major codes spreadsheet.
 """
 
-from typing import Dict, List, Literal, Optional, Tuple
+from typing import Dict, List, Literal, Optional, Set, Tuple
 
 Course = Tuple[str, str]
 Prerequisite = Tuple[Course, bool]
@@ -141,11 +141,11 @@ class Plan:
     plans for Curricular Analytics.
     """
 
-    quarters: List[List[PlannedCourse]]
+    quarters: List[Set[PlannedCourse]]
 
-    def __init__(self, quarters: Optional[List[List[PlannedCourse]]] = None) -> None:
+    def __init__(self, quarters: Optional[List[Set[PlannedCourse]]] = None) -> None:
         # https://stackoverflow.com/a/33990699
-        self.quarters = [[] for _ in range(12)] if quarters is None else quarters
+        self.quarters = [set() for _ in range(12)] if quarters is None else quarters
 
     def __repr__(self) -> str:
         return f"Plan(quarters={repr(self.quarters)})"
@@ -170,7 +170,7 @@ class Major:
         self.major = major
         self.plans = {} if plans is None else plans
 
-    def curriculum(self, college: str = "RE") -> Plan:
+    def curriculum(self, college: str = "RE") -> Set[PlannedCourse]:
         """
         Creates an academic plan with college-specific courses removed. Can be
         used to create a curriculum for Curricular Analytics.
@@ -183,16 +183,11 @@ class Major:
         arbitrarily uses Revelle's college plan, but you can specify a college
         code in `college` to base the degree plan off a different college.
         """
-        # Arbitrarily using Revelle
-        return Plan(
-            [
-                [
-                    course
-                    for course in quarter
-                    if course.type == "DEPARTMENT" or course.overlaps_ge
-                ]
-                for quarter in self.plans[college].quarters
-            ]
+        return set(
+            course
+            for quarter in self.plans[college].quarters
+            for course in quarter
+            if course.type == "DEPARTMENT" or course.overlaps_ge
         )
 
     def __repr__(self) -> str:
@@ -225,7 +220,7 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, Major]:
         quarter = (int(year) - 1) * 3 + int(qtr) - 1
         if c_type != "COLLEGE" and c_type != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
-        majors[major].plans[college].quarters[quarter].append(
+        majors[major].plans[college].quarters[quarter].add(
             PlannedCourse(course, float(units), c_type, overlap == "Y")
         )
     return majors
@@ -244,12 +239,21 @@ class MajorInfo:
     name: str
     department: str
     cip_code: str
+    award_types: Set[str]
 
-    def __init__(self, isis: str, description: str, department: str, cip: str) -> None:
+    def __init__(
+        self,
+        isis: str,
+        description: str,
+        department: str,
+        cip: str,
+        award_types: Set[str],
+    ) -> None:
         self.isis_code = isis
         self.name = description
         self.department = department
         self.cip_code = cip
+        self.award_types = award_types
 
 
 def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
@@ -265,7 +269,7 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
         _,  # End Term
         _,  # Student Level
         department,  # Department
-        _,  # Award Type
+        award_types,  # Award Type
         _,  # Program Length (in years)
         _,  # College
         cip,  # CIP Code
@@ -275,7 +279,13 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
         _,  # Discontinued or Phasing Out
         _,  # Notes
     ) in rows:
-        majors[isis] = MajorInfo(isis, description, department, cip)
+        majors[isis] = MajorInfo(
+            isis,
+            description,
+            department,
+            cip,
+            set(award_types.split(" ")) if award_types else set(),
+        )
     return majors
 
 
