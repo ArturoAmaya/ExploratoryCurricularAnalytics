@@ -7,11 +7,13 @@ Exports:
     of prerequisites, which are each lists of possible course codes to satisfy
     the requirement.
 
-    `majors`, a list of `Major`s, which contains a dictionary mapping college
-    codes to `Plan`s, which have a list of list of `PlannedCourse`s for each
-    quarter.
-"""
+    `majors`, a dictionary mapping from ISIS major codes to `Major` objects,
+    which contains a dictionary mapping college codes to `Plan`s, which have a
+    list of list of `PlannedCourse`s for each quarter.
 
+    `major_codes`, a dictionary mapping from ISIS major codes to `MajorInfo`
+    objects, which contains data from the ISIS major codes spreadsheet.
+"""
 
 from typing import Dict, List, Literal, Optional, Tuple
 
@@ -20,7 +22,7 @@ Prerequisite = Tuple[Course, bool]
 
 
 def read_csv_from(
-    path: str, not_found_msg: Optional[str] = None, strip: Optional[bool] = False
+    path: str, not_found_msg: Optional[str] = None, strip: bool = False
 ) -> List[List[str]]:
     """
     Reads and parses the file at the given path as a CSV file.
@@ -92,7 +94,7 @@ def prereq_rows_to_dict(
     courses to satisfy the requirement, like an OR.
     """
     prereqs: Dict[Course, List[List[Prerequisite]]] = {}
-    for subject, number, prereq_id, pre_sub, pre_num, allow_concurrent in rows[1:]:
+    for subject, number, prereq_id, pre_sub, pre_num, allow_concurrent in rows:
         # NOTE: Currently ignoring "Allow concurrent registration?" because I don't
         # know what to do with it
         course: Course = subject, number
@@ -143,8 +145,7 @@ class Plan:
 
     def __init__(self, quarters: Optional[List[List[PlannedCourse]]] = None) -> None:
         # https://stackoverflow.com/a/33990699
-        self.quarters = [[]
-                         for _ in range(12)] if quarters is None else quarters
+        self.quarters = [[] for _ in range(12)] if quarters is None else quarters
 
     def __repr__(self) -> str:
         return f"Plan(quarters={repr(self.quarters)})"
@@ -169,16 +170,18 @@ class Major:
         self.major = major
         self.plans = {} if plans is None else plans
 
-    def curriculum(self, college: str) -> Plan:
+    def curriculum(self, college: str = "RE") -> Plan:
         """
         Creates an academic plan with college-specific courses removed. Can be
         used to create a curriculum for Curricular Analytics.
 
-        Assumes that the department plans are the same for all colleges. It
-        might be worth checking if that's actually the case.
-
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
+
+        Assumes that the department plans are the same for all colleges. It
+        might be worth checking if that's actually the case. By default, it
+        arbitrarily uses Revelle's college plan, but you can specify a college
+        code in `college` to base the degree plan off a different college.
         """
         # Arbitrarily using Revelle
         return Plan(
@@ -196,54 +199,110 @@ class Major:
         return f"Major(department={repr(self.department)}, major={repr(self.major)}, plans={repr(self.plans)})"
 
 
-def plan_rows_to_plans(rows: List[List[str]]) -> List[Major]:
+def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, Major]:
     """
-    Converts the academic plans CSV rows into a list of `Major` objects.
+    Converts the academic plans CSV rows into a dictionary of major codes to
+    `Major` objects.
     """
     majors: Dict[str, Major] = {}
     for (
-        dept,
-        major,
-        college,
-        course,
-        units,
-        c_type,
-        overlap,
-        _,
-        year,
-        qtr,
-        _,
-    ) in rows[1:]:
+        dept,  # Department
+        major,  # Major
+        college,  # College
+        course,  # Course
+        units,  # Units
+        c_type,  # Course Type
+        overlap,  # GE/Major Overlap
+        _,  # Start Year
+        year,  # Year Taken
+        qtr,  # Quarter Taken
+        _,  # Term Taken
+    ) in rows:
         if major not in majors:
             majors[major] = Major(dept, major)
         if college not in majors[major].plans:
             majors[major].plans[college] = Plan()
         quarter = (int(year) - 1) * 3 + int(qtr) - 1
         if c_type != "COLLEGE" and c_type != "DEPARTMENT":
-            raise TypeError(
-                'Course type is neither "COLLEGE" nor "DEPARTMENT"')
+            raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
         majors[major].plans[college].quarters[quarter].append(
             PlannedCourse(course, float(units), c_type, overlap == "Y")
         )
-    return list(majors.values())
+    return majors
+
+
+class MajorInfo:
+    """
+    Represents information about a major from the ISIS major code list.
+
+    You can find the major code list by Googling "isis major codes," but it's
+    not going to be in the format that this program expects:
+    https://blink.ucsd.edu/_files/instructors-tab/major-codes/isis_major_code_list.xlsx
+    """
+
+    isis_code: str
+    name: str
+    department: str
+    cip_code: str
+
+    def __init__(self, isis: str, description: str, department: str, cip: str) -> None:
+        self.isis_code = isis
+        self.name = description
+        self.department = department
+        self.cip_code = cip
+
+
+def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
+    majors: Dict[str, MajorInfo] = {}
+    for (
+        _,  # Previous Local Code
+        _,  # UCOP Major Code (CSS)
+        isis,  # ISIS Major Code
+        _,  # Major Abbreviation
+        description,  # Major Description
+        _,  # Diploma Title
+        _,  # Start Term
+        _,  # End Term
+        _,  # Student Level
+        department,  # Department
+        _,  # Award Type
+        _,  # Program Length (in years)
+        _,  # College
+        cip,  # CIP Code
+        _,  # CIP Description
+        _,  # STEM
+        _,  # Self Supporting
+        _,  # Discontinued or Phasing Out
+        _,  # Notes
+    ) in rows:
+        majors[isis] = MajorInfo(isis, description, department, cip)
+    return majors
 
 
 prereqs = prereq_rows_to_dict(
     read_csv_from(
         "./files/prereqs.csv",
-        "There is no prereqs.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
+        "There is no `prereqs.csv` file in the files/ folder. See the README for where to download it from.",
         strip=True,
     )[1:]
 )
 
-majors = plan_rows_to_plans(
+majors = plan_rows_to_dict(
     read_csv_from(
         "./files/academic_plans.csv",
-        "There is no academic_plans.csv file in the files/ folder. Have you downloaded it from the Google Drive folder?",
+        "There is no `academic_plans.csv` file in the files/ folder. See the README for where to download it from.",
+        strip=True,
+    )[1:]
+)
+
+major_codes = major_rows_to_dict(
+    read_csv_from(
+        "./files/isis_major_code_list.xlsx - Major Codes.csv",
+        "There is no `isis_major_code_list.xlsx - Major Codes.csv` file in the files/ folder. See the README for where to download it from.",
         strip=True,
     )[1:]
 )
 
 if __name__ == "__main__":
     print(prereqs["CAT", "1"])
-    print(next(major for major in majors if major.major == "CS26").curriculum("RE"))
+    print(majors["CS26"].curriculum())
