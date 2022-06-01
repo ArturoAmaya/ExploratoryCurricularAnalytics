@@ -1,14 +1,14 @@
-from typing import Optional, Tuple
+from typing import Tuple
 
 
-def parse_course_name(name: str) -> Optional[Tuple[str, Optional[str]]]:
+def parse_course_name(name: str) -> Tuple[str, str]:
     """
     Attempts to parse course name strings such as "MATH 10A/20A" into the course
     subject or department, which Curricular Analytics calls the prefix, and the
     course number.
 
-    Returns a tuple of the prefix and number; the number may be `None` if there
-    is no course number. Returns `None` if there is no prefix or number.
+    Returns a tuple of the prefix and number. If there isn't a prefix or number,
+    use an empty string.
 
     This function is in its own file because parsing course names from academic
     plans might get quite complicated. For example, in the CS26 curriculum
@@ -33,6 +33,6 @@ def parse_course_name(name: str) -> Optional[Tuple[str, Optional[str]]]:
     # Temporary naïve approach
     if " " in name:
         subject, number = name.strip("*^").split(maxsplit=1)
-        return subject, number if number[0].isnumeric() else None
+        return subject, number if number[0].isnumeric() else ""
     else:
-        return None
+        return "", ""

@@ -2,9 +2,10 @@
 handles output in happy csv format
 """
 
-from typing import Generator, Iterable, List, Optional
+from typing import Dict, Generator, Iterable, List, Optional, Tuple
 
-from parse import Major, majors, major_codes
+from parse import Major, PlannedCourse, majors, major_codes, prereqs
+from parse_course_name import parse_course_name
 
 
 INSTITUTION = "University of California, San Diego"
@@ -15,7 +16,10 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
     for row in rows:
         yield (
             ",".join(
-                [f'"{field}"' if "," in field else field for field in row]
+                [
+                    f'"{field}"' if any(c in field for c in ",\r\n") else field
+                    for field in row
+                ]
                 + [""] * (columns - len(row))
             )
             + "\n"
@@ -75,16 +79,34 @@ def output_curriculum(major: Major) -> Generator[List[str], None, None]:
         "Institution",
         "Canonical Name",
     ]
+    courses: Dict[Tuple[str, str], Tuple[str, PlannedCourse]] = {}
     for i, course in enumerate(major.curriculum()):
+        prefix_number = parse_course_name(course.course)
+        courses[prefix_number] = str(i + 1), course
+    for (prefix, number), (course_id, course) in courses.items():
         yield [
-            str(i + 1),
+            course_id,
             course.course,
-            "TODO: subject",
-            "TODO: number",
-            "TODO: prereqs",
-            "TODO: coreqs",
+            prefix,
+            number,
+            ";".join(
+                courses[course][0]
+                for alternatives in prereqs[prefix, number]
+                for course, concurrent in alternatives
+                if not concurrent and course in courses
+            )
+            if (prefix, number) in prereqs
+            else "",
+            ";".join(
+                courses[course][0]
+                for alternatives in prereqs[prefix, number]
+                for course, concurrent in alternatives
+                if concurrent and course in courses
+            )
+            if (prefix, number) in prereqs
+            else "",
             "",
-            str(course.units),
+            f"{course.units:g}",  # https://stackoverflow.com/a/2440708
             "",
             "",
         ]
