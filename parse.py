@@ -56,13 +56,20 @@ def read_csv_from(
 
     try:
         with open(path, "r") as file:
+            row_overflow: Optional[Tuple[List[str], str]] = None
             for line in file.read().splitlines():
-                row: List[str] = []
-                rows.append(row)
+                row: List[str]
+                in_quotes: bool
+                if row_overflow:
+                    row = row_overflow[0]
+                    in_quotes = True
+                else:
+                    row = []
+                    rows.append(row)
+                    in_quotes = False
                 last_index: int = 0
-                in_quotes: bool = False
                 ignore_next: bool = False  # For backslashes in quotes
-                for i, char in enumerate(line):
+                for i, char in enumerate(line + ","):
                     if in_quotes:
                         if ignore_next:
                             ignore_next = False
@@ -74,9 +81,13 @@ def read_csv_from(
                         if char == '"':
                             in_quotes = True
                         elif char == ",":
-                            row.append(parse_field(line[last_index:i]))
+                            prefix: str = row_overflow[1] if row_overflow else ""
+                            row_overflow = None
+                            row.append(parse_field(prefix + line[last_index:i]))
                             last_index = i + 1
-                row.append(parse_field(line[last_index:]))
+                if in_quotes:
+                    prefix: str = row_overflow[1] if row_overflow else ""
+                    row_overflow = row, prefix + line[last_index:] + "\n"
     except FileNotFoundError as e:
         raise e if not_found_msg is None else FileNotFoundError(not_found_msg)
     return rows
@@ -255,6 +266,9 @@ class MajorInfo:
         self.cip_code = cip
         self.award_types = award_types
 
+    def __repr__(self) -> str:
+        return f"MajorInfo(isis_code={repr(self.isis_code)}, name={repr(self.name)}, department={repr(self.department)}, cip_code={repr(self.cip_code)}, award_types={repr(self.award_types)})"
+
 
 def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
     majors: Dict[str, MajorInfo] = {}
@@ -316,3 +330,4 @@ major_codes = major_rows_to_dict(
 if __name__ == "__main__":
     print(prereqs["CAT", "1"])
     print(majors["CS26"].curriculum())
+    print(major_codes["CS26"])
