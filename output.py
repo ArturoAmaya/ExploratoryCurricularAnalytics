@@ -1,5 +1,6 @@
 """
-handles output in happy csv format
+Outputs a CSV file in Curricular Analytics' curriculum and degree plan formats
+from the parsed academic plans and course prerequisites.
 """
 
 from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
@@ -48,6 +49,22 @@ DEGREE_PLAN_COLS = 11
 
 
 def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None, None]:
+    """
+    Converts a list of lists of fields into lines of CSV records. Yields a
+    newline-terminated line.
+
+    `output_plan` always outputs a "Term" column because I'm lazy, so this
+    function cuts off extra columns for curricula.
+
+    For example, the following saves the output CSV of the bioengineering
+    curriculum to a string variable.
+
+    ```py
+    csv = ""
+    for line in rows_to_csv(output_plan(majors["BE25"]), CURRICULUM_COLS):
+        csv += line
+    ```
+    """
     for row in rows:
         yield (
             ",".join(
@@ -98,7 +115,11 @@ def output_plan(
     major: Major, college: Optional[str] = None
 ) -> Generator[List[str], None, None]:
     """
-    Outputs a curriculum in Curricular Analytics' format (CSV).
+    Outputs a curriculum or degree plan in Curricular Analytics' format (CSV).
+
+    To output a degree plan, specify the college that the degree plan is for. If
+    the college isn't specified, then `output_plan` will output the major's
+    curriculum instead.
     """
     major_info = major_codes[major.major]
     # NOTE: Currently just gets the last listed award type (bias towards BS over
@@ -169,6 +190,24 @@ def output_plan(
                 "",
                 term,
             ]
+
+
+def to_file(path: str, csv: Iterable[str]) -> None:
+    """
+    Writes the records of the given CSV file to a file at the given path.
+
+    For example, the following saves the CS major curriculum to
+    `files/Curriculum-CS26.csv`.
+
+    ```py
+    to_file(
+        "files/Curriculum-CS26.csv",
+        rows_to_csv(output_plan(majors["CS26"]), DEGREE_PLAN_COLS),
+    )
+    ```
+    """
+    with open(path, "w") as file:
+        file.writelines(csv)
 
 
 if __name__ == "__main__":
