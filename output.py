@@ -2,13 +2,30 @@
 handles output in happy csv format
 """
 
-from typing import Dict, Generator, Iterable, List, Optional, Tuple
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
 
-from parse import Course, Major, PlannedCourse, majors, major_codes, prereqs
+from parse import (
+    Course as CourseCode,
+    Major,
+    PlannedCourse,
+    majors,
+    major_codes,
+    prereqs,
+)
 from parse_course_name import parse_course_name
 
+CourseId = str
 Term = str
-CourseOrder = Tuple[Course, PlannedCourse, Term]
+
+
+class CourseEntry(NamedTuple):
+    code: CourseCode
+    course: PlannedCourse
+    id: str
+    term: str
+
+    def with_id(self, new_id: str) -> "CourseEntry":
+        return CourseEntry(self.code, self.course, new_id, self.term)
 
 
 INSTITUTION = "University of California, San Diego"
@@ -95,48 +112,52 @@ def output_plan(
         cip=major_info.cip_code,
     )
 
-    course_ids: Dict[Tuple[str, str], str] = {}
-    main_courses: List[CourseOrder] = []
-    additional_courses: List[CourseOrder] = []
+    course_ids: Dict[CourseCode, str] = {}
+    main_courses: List[CourseEntry] = []
+    additional_courses: List[CourseEntry] = []
     if college:
         for i, quarter in enumerate(major.plans[college].quarters):
             for course in quarter:
-                prefix_number = parse_course_name(course.course)
+                code = parse_course_name(course.course)
                 (
                     main_courses
                     if course.type == "DEPARTMENT" or course.overlaps_ge
                     else additional_courses
-                ).append((prefix_number, course, str(i + 1)))
-        id = 1
-        for prefix_number, _, _ in main_courses:
-            course_ids[prefix_number] = str(id)
-            id += 1
-        for prefix_number, _, _ in additional_courses:
-            course_ids[prefix_number] = str(id)
-            id += 1
+                ).append(CourseEntry(code, course, "", str(i + 1)))
+        main_courses = [
+            entry.with_id(str(i + 1)) for i, entry in enumerate(main_courses)
+        ]
+        additional_courses = [
+            entry.with_id(str(len(main_courses) + i + 1))
+            for i, entry in enumerate(additional_courses)
+        ]
+        for entry in main_courses:
+            course_ids[entry.code] = entry.id
+        for entry in additional_courses:
+            course_ids[entry.code] = entry.id
     else:
         for i, course in enumerate(major.curriculum()):
-            prefix_number = parse_course_name(course.course)
-            course_ids[prefix_number] = str(i + 1)
-            main_courses.append((prefix_number, course, ""))
+            code = parse_course_name(course.course)
+            course_ids[code] = str(i + 1)
+            main_courses.append(CourseEntry(code, course, str(i + 1), ""))
 
     for courses in main_courses, additional_courses:
         if not college and courses is additional_courses:
             break
         yield ["Courses" if courses is main_courses else "Additional Courses"]
         yield HEADER
-        for (prefix, number), course, term in courses:
+        for (prefix, number), course, course_id, term in courses:
             prereq_ids: List[str] = []
             coreq_ids: List[str] = []
             if (prefix, number) in prereqs:
                 for alternatives in prereqs[prefix, number]:
-                    for course_code, concurrent in alternatives:
-                        if course_code in course_ids:
+                    for code, concurrent in alternatives:
+                        if code in course_ids:
                             (coreq_ids if concurrent else prereq_ids).append(
-                                course_ids[course_code]
+                                course_ids[code]
                             )
             yield [
-                course_ids[prefix, number],
+                course_id,
                 course.course,
                 prefix,
                 number,
