@@ -155,7 +155,7 @@ def output_plan(
                             )
             yield [
                 course_id,
-                course.course,
+                course.course.strip("*"),  # Asterisks seem to break the site
                 prefix,
                 number,
                 ";".join(prereq_ids),
@@ -217,6 +217,6 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 
 if __name__ == "__main__":
-    to_file("files/Curriculum-CS26.csv", output("CS26"))
+    to_file("files/CS26_Sixth.csv", output("CS26", "SI"))
     for line in output("CS26", "SI"):
         print(line, end="")
