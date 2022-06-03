@@ -1,3 +1,8 @@
+"""
+Split course names from the academic plans into its subject and number to get
+its prerequisites.
+"""
+
 from typing import Tuple
 
 

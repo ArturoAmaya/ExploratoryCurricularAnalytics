@@ -1,6 +1,12 @@
 """
 Outputs a CSV file in Curricular Analytics' curriculum and degree plan formats
 from the parsed academic plans and course prerequisites.
+
+Exports:
+    `output`, a generator function that takes a major code and optionally a
+    college code and yields lines of the CSV file. You can use a for loop on the
+    return value to print, write to a file, or store the lines in a string
+    variable.
 """
 
 from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
@@ -46,36 +52,6 @@ HEADER = [
 ]
 CURRICULUM_COLS = 10
 DEGREE_PLAN_COLS = 11
-
-
-def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None, None]:
-    """
-    Converts a list of lists of fields into lines of CSV records. Yields a
-    newline-terminated line.
-
-    `output_plan` always outputs a "Term" column because I'm lazy, so this
-    function cuts off extra columns for curricula.
-
-    For example, the following saves the output CSV of the bioengineering
-    curriculum to a string variable.
-
-    ```py
-    csv = ""
-    for line in rows_to_csv(output_plan(majors["BE25"]), CURRICULUM_COLS):
-        csv += line
-    ```
-    """
-    for row in rows:
-        yield (
-            ",".join(
-                [
-                    f'"{field}"' if any(c in field for c in ",\r\n") else field
-                    for field in row
-                ][:columns]
-                + [""] * (columns - len(row))
-            )
-            + "\n"
-        )
 
 
 def output_header(
@@ -192,18 +168,48 @@ def output_plan(
             ]
 
 
+def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None, None]:
+    """
+    Converts a list of lists of fields into lines of CSV records. Yields a
+    newline-terminated line.
+
+    The return value from `output_plan` should be passed as the `rows` argument.
+
+    `output_plan` always outputs a "Term" column because I'm lazy, so this
+    function can cut off extra columns or adds empty fields as needed to meet
+    the column count.
+    """
+    for row in rows:
+        yield (
+            ",".join(
+                [
+                    f'"{field}"' if any(c in field for c in ",\r\n") else field
+                    for field in row
+                ][:columns]
+                + [""] * (columns - len(row))
+            )
+            + "\n"
+        )
+
+
+def output(major: str, college: Optional[str] = None) -> Generator[str, None, None]:
+    return rows_to_csv(
+        output_plan(majors[major], college),
+        DEGREE_PLAN_COLS if college else CURRICULUM_COLS,
+    )
+
+
 def to_file(path: str, csv: Iterable[str]) -> None:
     """
     Writes the records of the given CSV file to a file at the given path.
 
     For example, the following saves the CS major curriculum to
-    `files/Curriculum-CS26.csv`.
+    `files/Curriculum-CS26.csv` and the ERC degree plan for CS to `files/Degree
+    Plan-ERC-CS26.csv`.
 
     ```py
-    to_file(
-        "files/Curriculum-CS26.csv",
-        rows_to_csv(output_plan(majors["CS26"]), DEGREE_PLAN_COLS),
-    )
+    to_file("files/Curriculum-CS26.csv", output("CS26"))
+    to_file("files/Degree Plan-ERC-CS26.csv", output("CS26", 'FI'))
     ```
     """
     with open(path, "w") as file:
@@ -211,5 +217,6 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 
 if __name__ == "__main__":
-    for line in rows_to_csv(output_plan(majors["CS26"], "SI"), DEGREE_PLAN_COLS):
+    to_file("files/Curriculum-CS26.csv", output("CS26"))
+    for line in output("CS26", "SI"):
         print(line, end="")
