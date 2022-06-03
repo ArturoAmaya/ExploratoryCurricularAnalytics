@@ -12,10 +12,10 @@ Exports:
 from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
 
 from parse import (
-    Course as CourseCode,
-    Major,
+    CourseCode as CourseCode,
+    MajorPlans,
     PlannedCourse,
-    majors,
+    major_plans,
     major_codes,
     prereqs,
 )
@@ -88,7 +88,7 @@ college_names = {
 
 
 def output_plan(
-    major: Major, college: Optional[str] = None
+    major: MajorPlans, college: Optional[str] = None
 ) -> Generator[List[str], None, None]:
     """
     Outputs a curriculum or degree plan in Curricular Analytics' format (CSV).
@@ -97,7 +97,7 @@ def output_plan(
     the college isn't specified, then `output_plan` will output the major's
     curriculum instead.
     """
-    major_info = major_codes[major.major]
+    major_info = major_codes[major.major_code]
     # NOTE: Currently just gets the last listed award type (bias towards BS over
     # BA). Will see how to deal with BA vs BS
     yield from output_header(
@@ -115,7 +115,7 @@ def output_plan(
     if college:
         for i, quarter in enumerate(major.plans[college].quarters):
             for course in quarter:
-                code = parse_course_name(course.course)
+                code = parse_course_name(course.course_code)
                 (
                     main_courses
                     if course.type == "DEPARTMENT" or course.overlaps_ge
@@ -134,7 +134,7 @@ def output_plan(
             course_ids[entry.code] = entry.id
     else:
         for i, course in enumerate(major.curriculum()):
-            code = parse_course_name(course.course)
+            code = parse_course_name(course.course_code)
             course_ids[code] = str(i + 1)
             main_courses.append(CourseEntry(code, course, str(i + 1), ""))
 
@@ -155,7 +155,7 @@ def output_plan(
                             )
             yield [
                 course_id,
-                course.course.strip("*"),  # Asterisks seem to break the site
+                course.course_code.strip("*"),  # Asterisks seem to break the site
                 prefix,
                 number,
                 ";".join(prereq_ids),
@@ -194,7 +194,7 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
 
 def output(major: str, college: Optional[str] = None) -> Generator[str, None, None]:
     return rows_to_csv(
-        output_plan(majors[major], college),
+        output_plan(major_plans[major], college),
         DEGREE_PLAN_COLS if college else CURRICULUM_COLS,
     )
 
