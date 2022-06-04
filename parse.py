@@ -154,18 +154,18 @@ class MajorPlans(NamedTuple):
     major_code: str
     plans: Dict[str, Plan]
 
-    def curriculum(self, college: str = "RE") -> Set[PlannedCourse]:
+    def curriculum(self, college: str = "TH") -> Set[PlannedCourse]:
         """
-        Creates an academic plan with college-specific courses removed. Can be
-        used to create a curriculum for Curricular Analytics.
+        Returns a set of courses based on the specified college's degree plan
+        with college-specific courses removed. Can be used to create a
+        curriculum for Curricular Analytics.
 
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
 
-        Assumes that the department plans are the same for all colleges. It
-        might be worth checking if that's actually the case. By default, it
-        arbitrarily uses Revelle's college plan, but you can specify a college
-        code in `college` to base the degree plan off a different college.
+        The default college is intentionally set to Marshall (Third College)
+        because it appears to be a generally good college to base curricula off
+        of (see #14).
         """
         return set(
             course
