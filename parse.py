@@ -122,7 +122,7 @@ def prereq_rows_to_dict(
     return prereqs
 
 
-class PlannedCourse:
+class PlannedCourse(NamedTuple):
     """
     Represents a course in an academic plan.
     """
@@ -132,23 +132,8 @@ class PlannedCourse:
     type: Literal["COLLEGE", "DEPARTMENT"]
     overlaps_ge: bool
 
-    def __init__(
-        self,
-        course: str,
-        units: float,
-        type: Literal["COLLEGE", "DEPARTMENT"],
-        overlaps_ge: bool,
-    ) -> None:
-        self.course_code = course
-        self.units = units
-        self.type = type
-        self.overlaps_ge = overlaps_ge
 
-    def __repr__(self) -> str:
-        return f"PlannedCourse(course_code={repr(self.course_code)}, units={repr(self.units)}, type={repr(self.type)}, overlaps_ge={repr(self.overlaps_ge)})"
-
-
-class Plan:
+class Plan(NamedTuple):
     """
     Represents a college-specific academic plan. Can be used to create degree
     plans for Curricular Analytics.
@@ -156,15 +141,8 @@ class Plan:
 
     quarters: List[Set[PlannedCourse]]
 
-    def __init__(self, quarters: Optional[List[Set[PlannedCourse]]] = None) -> None:
-        # https://stackoverflow.com/a/33990699
-        self.quarters = [set() for _ in range(12)] if quarters is None else quarters
 
-    def __repr__(self) -> str:
-        return f"Plan(quarters={repr(self.quarters)})"
-
-
-class MajorPlans:
+class MajorPlans(NamedTuple):
     """
     Represents a major's set of academic plans. Contains plans for each college.
 
@@ -176,25 +154,18 @@ class MajorPlans:
     major_code: str
     plans: Dict[str, Plan]
 
-    def __init__(
-        self, department: str, major_code: str, plans: Optional[Dict[str, Plan]] = None
-    ) -> None:
-        self.department = department
-        self.major_code = major_code
-        self.plans = {} if plans is None else plans
-
-    def curriculum(self, college: str = "RE") -> Set[PlannedCourse]:
+    def curriculum(self, college: str = "TH") -> Set[PlannedCourse]:
         """
-        Creates an academic plan with college-specific courses removed. Can be
-        used to create a curriculum for Curricular Analytics.
+        Returns a set of courses based on the specified college's degree plan
+        with college-specific courses removed. Can be used to create a
+        curriculum for Curricular Analytics.
 
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
 
-        Assumes that the department plans are the same for all colleges. It
-        might be worth checking if that's actually the case. By default, it
-        arbitrarily uses Revelle's college plan, but you can specify a college
-        code in `college` to base the degree plan off a different college.
+        The default college is intentionally set to Marshall (Third College)
+        because it appears to be a generally good college to base curricula off
+        of (see #14).
         """
         return set(
             course
@@ -202,9 +173,6 @@ class MajorPlans:
             for course in quarter
             if course.type == "DEPARTMENT" or course.overlaps_ge
         )
-
-    def __repr__(self) -> str:
-        return f"Major(department={repr(self.department)}, major_code={repr(self.major_code)}, plans={repr(self.plans)})"
 
 
 def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
@@ -227,9 +195,9 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         _,  # Term Taken
     ) in rows:
         if major_code not in majors:
-            majors[major_code] = MajorPlans(department, major_code)
+            majors[major_code] = MajorPlans(department, major_code, {})
         if college_code not in majors[major_code].plans:
-            majors[major_code].plans[college_code] = Plan()
+            majors[major_code].plans[college_code] = Plan([set() for _ in range(12)])
         quarter = (int(year) - 1) * 3 + int(quarter) - 1
         if course_title != "COLLEGE" and course_title != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
@@ -239,7 +207,7 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
     return majors
 
 
-class MajorInfo:
+class MajorInfo(NamedTuple):
     """
     Represents information about a major from the ISIS major code list.
 
@@ -253,23 +221,6 @@ class MajorInfo:
     department: str
     cip_code: str
     award_types: Set[str]
-
-    def __init__(
-        self,
-        isis: str,
-        description: str,
-        department: str,
-        cip: str,
-        award_types: Set[str],
-    ) -> None:
-        self.isis_code = isis
-        self.name = description
-        self.department = department
-        self.cip_code = cip
-        self.award_types = award_types
-
-    def __repr__(self) -> str:
-        return f"MajorInfo(isis_code={repr(self.isis_code)}, name={repr(self.name)}, department={repr(self.department)}, cip_code={repr(self.cip_code)}, award_types={repr(self.award_types)})"
 
 
 def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
