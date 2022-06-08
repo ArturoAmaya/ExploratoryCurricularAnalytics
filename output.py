@@ -9,10 +9,10 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Tuple
 
 from parse import (
-    CourseCode as CourseCode,
+    CourseCode,
     MajorPlans,
     PlannedCourse,
     major_plans,
@@ -26,7 +26,7 @@ Term = str
 
 
 class CourseEntry(NamedTuple):
-    code: CourseCode
+    code: Optional[CourseCode]
     course: PlannedCourse
     id: str
     term: str
@@ -113,46 +113,93 @@ def output_plan(
     main_courses: List[CourseEntry] = []
     additional_courses: List[CourseEntry] = []
     if college:
-        for i, quarter in enumerate(major.plans[college].quarters):
-            for course in quarter:
-                code = parse_course_name(course.course_code)
-                (
-                    main_courses
-                    if course.type == "DEPARTMENT" or course.overlaps_ge
-                    else additional_courses
-                ).append(CourseEntry(code, course, "", str(i + 1)))
-        main_courses = [
-            entry.with_id(str(i + 1)) for i, entry in enumerate(main_courses)
-        ]
-        additional_courses = [
-            entry.with_id(str(len(main_courses) + i + 1))
-            for i, entry in enumerate(additional_courses)
-        ]
-        for entry in main_courses:
-            course_ids[entry.code] = entry.id
-        for entry in additional_courses:
-            course_ids[entry.code] = entry.id
+
+        def yield_courses() -> Generator[
+            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
+        ]:
+            for i, quarter in enumerate(major.plans[college].quarters, start=1):
+                for course in quarter:
+                    yield (
+                        main_courses
+                        if course.type == "DEPARTMENT" or course.overlaps_ge
+                        else additional_courses
+                    ), course, "", str(i)
+
     else:
-        for i, course in enumerate(major.curriculum()):
-            code = parse_course_name(course.course_code)
-            course_ids[code] = str(i + 1)
-            main_courses.append(CourseEntry(code, course, str(i + 1), ""))
+
+        def yield_courses() -> Generator[
+            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
+        ]:
+            for i, course in enumerate(major.curriculum(), start=1):
+                yield main_courses, course, str(i), ""
+
+    for target, course, course_id, term in yield_courses():
+        parsed = parse_course_name(course.course_code)
+        if parsed:
+            subject, number, has_lab = parsed
+            code = subject, number
+            if has_lab:
+                target.append(
+                    CourseEntry(
+                        code,
+                        PlannedCourse(
+                            f"{subject} {number}",
+                            3 if has_lab == "L" else 2.5,
+                            course.type,
+                            course.overlaps_ge,
+                        ),
+                        course_id,
+                        term,
+                    )
+                )
+                target.append(
+                    CourseEntry(
+                        (subject, number + has_lab),
+                        PlannedCourse(
+                            f"{subject} {number}{has_lab}",
+                            2 if has_lab == "L" else 2.5,
+                            course.type,
+                            course.overlaps_ge,
+                        ),
+                        course_id,
+                        term,
+                    )
+                )
+            else:
+                target.append(CourseEntry(code, course, course_id, term))
+        else:
+            target.append(CourseEntry(None, course, course_id, term))
+
+    main_courses = [
+        entry.with_id(str(i)) for i, entry in enumerate(main_courses, start=1)
+    ]
+    additional_courses = [
+        entry.with_id(str(i))
+        for i, entry in enumerate(additional_courses, start=len(main_courses) + 1)
+    ]
+    for entry in main_courses:
+        if entry.code:
+            course_ids[entry.code] = entry.id
+    for entry in additional_courses:
+        if entry.code:
+            course_ids[entry.code] = entry.id
 
     for courses in main_courses, additional_courses:
         if not college and courses is additional_courses:
             break
         yield ["Courses" if courses is main_courses else "Additional Courses"]
         yield HEADER
-        for (prefix, number), course, course_id, term in courses:
+        for code, course, course_id, term in courses:
             prereq_ids: List[str] = []
             coreq_ids: List[str] = []
-            if (prefix, number) in prereqs:
-                for alternatives in prereqs[prefix, number]:
+            if code in prereqs:
+                for alternatives in prereqs[code]:
                     for code, concurrent in alternatives:
                         if code in course_ids:
                             (coreq_ids if concurrent else prereq_ids).append(
                                 course_ids[code]
                             )
+            prefix, number = code or ("", "")
             yield [
                 course_id,
                 course.course_code.strip("*"),  # Asterisks seem to break the site
