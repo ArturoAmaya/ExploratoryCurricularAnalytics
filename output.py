@@ -27,12 +27,13 @@ Term = str
 
 class CourseEntry(NamedTuple):
     code: Optional[CourseCode]
-    course: PlannedCourse
+    course_name: str
+    units: float
     id: str
     term: str
 
     def with_id(self, new_id: str) -> "CourseEntry":
-        return CourseEntry(self.code, self.course, new_id, self.term)
+        return CourseEntry(self.code, self.course_name, self.units, new_id, self.term)
 
 
 INSTITUTION = "University of California, San Diego"
@@ -134,41 +135,26 @@ def output_plan(
                 yield main_courses, course, str(i), ""
 
     for target, course, course_id, term in yield_courses():
-        parsed = parse_course_name(course.course_code)
+        course_name = course.course_code
+        units = course.units
+        parsed = parse_course_name(course_name)
+        code: Optional[Tuple[str, str]] = None
         if parsed:
             subject, number, has_lab = parsed
             code = subject, number
             if has_lab:
-                target.append(
-                    CourseEntry(
-                        code,
-                        PlannedCourse(
-                            f"{subject} {number}",
-                            3 if has_lab == "L" else 2.5,
-                            course.type,
-                            course.overlaps_ge,
-                        ),
-                        course_id,
-                        term,
-                    )
-                )
+                course_name = f"{subject} {number}"
+                units = 3 if has_lab == "L" else 2.5
                 target.append(
                     CourseEntry(
                         (subject, number + has_lab),
-                        PlannedCourse(
-                            f"{subject} {number}{has_lab}",
-                            2 if has_lab == "L" else 2.5,
-                            course.type,
-                            course.overlaps_ge,
-                        ),
+                        f"{subject} {number}{has_lab}",
+                        2 if has_lab == "L" else 2.5,
                         course_id,
                         term,
                     )
                 )
-            else:
-                target.append(CourseEntry(code, course, course_id, term))
-        else:
-            target.append(CourseEntry(None, course, course_id, term))
+        target.append(CourseEntry(code, course_name, units, course_id, term))
 
     main_courses = [
         entry.with_id(str(i)) for i, entry in enumerate(main_courses, start=1)
@@ -189,7 +175,8 @@ def output_plan(
             break
         yield ["Courses" if courses is main_courses else "Additional Courses"]
         yield HEADER
-        for code, course, course_id, term in courses:
+        for code, course_name, units, course_id, term in courses:
+            prefix, number = code or ("", "")
             prereq_ids: List[str] = []
             coreq_ids: List[str] = []
             if code in prereqs:
@@ -199,16 +186,15 @@ def output_plan(
                             (coreq_ids if concurrent else prereq_ids).append(
                                 course_ids[code]
                             )
-            prefix, number = code or ("", "")
             yield [
                 course_id,
-                course.course_code.strip("*"),  # Asterisks seem to break the site
+                course_name.strip("*^ "),  # Asterisks seem to break the site
                 prefix,
                 number,
                 ";".join(prereq_ids),
                 ";".join(coreq_ids),
                 "",
-                f"{course.units:g}",  # https://stackoverflow.com/a/2440708
+                f"{units:g}",  # https://stackoverflow.com/a/2440708
                 "",
                 "",
                 term,
@@ -265,5 +251,5 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 if __name__ == "__main__":
     to_file("files/CS26_Sixth.csv", output("CS26", "SI"))
-    for line in output("CS26", "SI"):
+    for line in output("CS26"):
         print(line, end="")
