@@ -1,11 +1,14 @@
+import json
 import os
-from typing import Dict, Tuple, Union
+from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 from urllib.error import HTTPError
+from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv  # type: ignore
 
-from output import output
+from output import college_names, output
+from parse import MajorInfo, major_codes
 
 load_dotenv()
 
@@ -74,6 +77,54 @@ def post_form(
         ) if error.code == 422 else error
 
 
+class CurriculumEntry(NamedTuple):
+    raw_name: str
+    raw_organization: str
+    cip_code: str
+    year: int
+    date_created: str
+
+
+def get_curricula(
+    sort_by: int,
+    direction: Literal["desc", "asc"] = "asc",
+    offset: int = 0,
+    items: int = 1,
+    search: str = "",
+) -> List[CurriculumEntry]:
+    params = urlencode(
+        {
+            "order[0][column]": sort_by,
+            "order[0][dir]": direction,
+            "start": offset,
+            "length": items,
+            "search[value]": search,
+        }
+    )
+    try:
+        with urlopen(
+            Request(
+                "https://curricularanalytics.org/curriculums?" + params,
+                headers={
+                    "Accept": "application/json",
+                    "Cookie": f"_curricularanalytics_session={session}",
+                },
+            )
+        ) as response:
+            return [
+                CurriculumEntry(
+                    raw_name, raw_organization, cip_code, year, date_created
+                )
+                for raw_name, raw_organization, cip_code, year, date_created in json.load(
+                    response
+                ).data
+            ]
+    except HTTPError as error:
+        raise RuntimeError(
+            "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
+        ) if error.code == 401 else error
+
+
 def upload_degree_plan(curriculum_id: int, name: str, file_name: str, csv: str) -> None:
     post_form(
         "https://curricularanalytics.org/degree_plans",
@@ -86,7 +137,7 @@ def upload_degree_plan(curriculum_id: int, name: str, file_name: str, csv: str) 
             "curriculum_json": "",
             "commit": "Save",
         },
-        headers={"cookie": f"_curricularanalytics_session={session}"},
+        headers={"Cookie": f"_curricularanalytics_session={session}"},
     )
 
 
@@ -106,18 +157,45 @@ def upload_curriculum(
             "curriculum_json": "",
             "commit": "Save",
         },
-        headers={"cookie": f"_curricularanalytics_session={session}"},
+        headers={"Cookie": f"_curricularanalytics_session={session}"},
     )
+
+
+def get_csv(major_code: str, college: Optional[str] = None) -> str:
+    csv = ""
+    for line in output(major_code, college):
+        csv += line
+    return csv
+
+
+def upload_major(
+    major: MajorInfo, organization_id: int, year: int, initials: str, log: bool = False
+) -> None:
+    major_code = major.isis_code
+    upload_curriculum(
+        organization_id,
+        f"{major_code}-{major.name}",  # TODO: Get department name (per instructions)
+        year,
+        f"{initials}-Curriculum Plan-{major_code}.csv",
+        get_csv(major_code),
+    )
+    if log:
+        print(f"[{major_code}] Curriculum uploaded")
+    curriculum_id = 3  # TODO
+    for college_code, college_name in college_names.items():
+        upload_degree_plan(
+            curriculum_id,
+            f"{major_code}/{college_name}",
+            f"SY-Degree Plan-{college_name}-{major_code}.csv",
+            get_csv(major_code, college_code),
+        )
+        if log:
+            print(f"[{major_code}] {college_name} degree plan uploaded")
 
 
 if __name__ == "__main__":
-    csv = ""
-    for line in output("ES26"):
-        csv += line
-    upload_curriculum(
-        19409,
-        "ES26-Environmental Systems",
-        2022,
-        "SY-Curriculum Plan-ES26.csv",
-        csv,
-    )
+    # upload_major(major_codes["CE25"], 19409, 2022, "SY")
+    # upload_degree_plan(
+    #     19474, "ES26/Revelle", "SY-Degree Plan-Revelle-ES26.csv", get_csv("ES26", "RE")
+    # )
+    print(get_curricula(4, direction="desc"))
