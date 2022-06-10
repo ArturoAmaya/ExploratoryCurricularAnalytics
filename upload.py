@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from typing import Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 from urllib.error import HTTPError
 from urllib.parse import urlencode
@@ -84,6 +85,14 @@ class CurriculumEntry(NamedTuple):
     year: int
     date_created: str
 
+    def curriculum_id(self) -> int:
+        match = re.match(r'<a href="/curriculums/(\d+)', self.raw_name)
+        if match is None:
+            raise ValueError(
+                f"The name of the curriculum entry `{self.raw_name}` doesn't seem to be a link."
+            )
+        return int(match.group(1))
+
 
 def get_curricula(
     sort_by: int,
@@ -111,13 +120,12 @@ def get_curricula(
                 },
             )
         ) as response:
+            data = json.load(response)["data"]
             return [
                 CurriculumEntry(
                     raw_name, raw_organization, cip_code, year, date_created
                 )
-                for raw_name, raw_organization, cip_code, year, date_created in json.load(
-                    response
-                ).data
+                for raw_name, raw_organization, cip_code, year, date_created, _ in data
             ]
     except HTTPError as error:
         raise RuntimeError(
@@ -181,7 +189,11 @@ def upload_major(
     )
     if log:
         print(f"[{major_code}] Curriculum uploaded")
-    curriculum_id = 3  # TODO
+    curriculum_id = get_curricula(4, direction="desc")[0].curriculum_id()
+    if log:
+        print(
+            f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
+        )
     for college_code, college_name in college_names.items():
         upload_degree_plan(
             curriculum_id,
@@ -194,8 +206,4 @@ def upload_major(
 
 
 if __name__ == "__main__":
-    # upload_major(major_codes["CE25"], 19409, 2022, "SY")
-    # upload_degree_plan(
-    #     19474, "ES26/Revelle", "SY-Degree Plan-Revelle-ES26.csv", get_csv("ES26", "RE")
-    # )
-    print(get_curricula(4, direction="desc"))
+    upload_major(major_codes["CR25"], 19409, 2022, "SY", log=True)
