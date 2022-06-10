@@ -5,6 +5,8 @@ from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv  # type: ignore
 
+from output import output
+
 load_dotenv()
 
 authenticity_token = os.getenv("AUTHENTICITY_TOKEN")
@@ -26,7 +28,7 @@ def post_form(
     url: str,
     form: Dict[str, Union[str, Tuple[str, bytes]]],
     headers: Dict[str, str] = {},
-):
+) -> None:
     body: bytearray = bytearray()
     for name, value in form.items():
         body += f"--{BOUNDARY}".encode("utf-8")
@@ -72,16 +74,50 @@ def post_form(
         ) if error.code == 422 else error
 
 
-post_form(
-    "https://curricularanalytics.org/degree_plans",
-    {
-        "authenticity_token": authenticity_token,
-        "degree_plan[name]": "apple cider",
-        "degree_plan[curriculum_id]": "19353",
-        "entry_method": "csv_file",
-        "degree_plan[degree_plan_file]": ("billy", b""),
-        "curriculum_json": "",
-        "commit": "Save",
-    },
-    headers={"cookie": f"_curricularanalytics_session={session}"},
-)
+def upload_degree_plan(curriculum_id: int, name: str, file_name: str, csv: str) -> None:
+    post_form(
+        "https://curricularanalytics.org/degree_plans",
+        {
+            "authenticity_token": authenticity_token,
+            "degree_plan[name]": name,
+            "degree_plan[curriculum_id]": str(curriculum_id),
+            "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
+            "entry_method": "csv_file",
+            "curriculum_json": "",
+            "commit": "Save",
+        },
+        headers={"cookie": f"_curricularanalytics_session={session}"},
+    )
+
+
+def upload_curriculum(
+    organization_id: int, name: str, year: int, file_name: str, csv: str
+) -> None:
+    post_form(
+        "https://curricularanalytics.org/curriculums",
+        {
+            "authenticity_token": authenticity_token,
+            "curriculum[name]": name,
+            "curriculum[organization_id]": str(organization_id),
+            "curriculum[catalog_year]": str(year),
+            "curriculum[cip]": "",  # Curricular Analytics will get it from the CSV
+            "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
+            "entry_method": "csv_file",
+            "curriculum_json": "",
+            "commit": "Save",
+        },
+        headers={"cookie": f"_curricularanalytics_session={session}"},
+    )
+
+
+if __name__ == "__main__":
+    csv = ""
+    for line in output("ES26"):
+        csv += line
+    upload_curriculum(
+        19409,
+        "ES26-Environmental Systems",
+        2022,
+        "SY-Curriculum Plan-ES26.csv",
+        csv,
+    )
