@@ -154,11 +154,15 @@ class MajorPlans(NamedTuple):
     major_code: str
     plans: Dict[str, Plan]
 
-    def curriculum(self, college: str = "TH") -> Set[PlannedCourse]:
+    def curriculum(self, college: str = "TH") -> List[PlannedCourse]:
         """
-        Returns a set of courses based on the specified college's degree plan
+        Returns a list of courses based on the specified college's degree plan
         with college-specific courses removed. Can be used to create a
         curriculum for Curricular Analytics.
+
+        Two curricula are equivalent if they have the same of each number of
+        course, regardless of the order. However, there can be multiple
+        identical courses (eg "ELECTIVE"), so this method does not return a set.
 
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
@@ -167,12 +171,12 @@ class MajorPlans(NamedTuple):
         because it appears to be a generally good college to base curricula off
         of (see #14).
         """
-        return set(
+        return [
             course
             for quarter in self.plans[college].quarters
             for course in quarter
             if course.type == "DEPARTMENT" or course.overlaps_ge
-        )
+        ]
 
 
 def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
