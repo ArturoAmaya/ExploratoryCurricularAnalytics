@@ -9,13 +9,13 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Tuple
 
 from parse import (
-    Course as CourseCode,
-    Major,
+    CourseCode,
+    MajorPlans,
     PlannedCourse,
-    majors,
+    major_plans,
     major_codes,
     prereqs,
 )
@@ -26,13 +26,14 @@ Term = str
 
 
 class CourseEntry(NamedTuple):
-    code: CourseCode
-    course: PlannedCourse
+    code: Optional[CourseCode]
+    course_name: str
+    units: float
     id: str
     term: str
 
     def with_id(self, new_id: str) -> "CourseEntry":
-        return CourseEntry(self.code, self.course, new_id, self.term)
+        return CourseEntry(self.code, self.course_name, self.units, new_id, self.term)
 
 
 INSTITUTION = "University of California, San Diego"
@@ -88,7 +89,7 @@ college_names = {
 
 
 def output_plan(
-    major: Major, college: Optional[str] = None
+    major: MajorPlans, college: Optional[str] = None
 ) -> Generator[List[str], None, None]:
     """
     Outputs a curriculum or degree plan in Curricular Analytics' format (CSV).
@@ -97,7 +98,7 @@ def output_plan(
     the college isn't specified, then `output_plan` will output the major's
     curriculum instead.
     """
-    major_info = major_codes[major.major]
+    major_info = major_codes[major.major_code]
     # NOTE: Currently just gets the last listed award type (bias towards BS over
     # BA). Will see how to deal with BA vs BS
     yield from output_header(
@@ -113,41 +114,73 @@ def output_plan(
     main_courses: List[CourseEntry] = []
     additional_courses: List[CourseEntry] = []
     if college:
-        for i, quarter in enumerate(major.plans[college].quarters):
-            for course in quarter:
-                code = parse_course_name(course.course)
-                (
-                    main_courses
-                    if course.type == "DEPARTMENT" or course.overlaps_ge
-                    else additional_courses
-                ).append(CourseEntry(code, course, "", str(i + 1)))
-        main_courses = [
-            entry.with_id(str(i + 1)) for i, entry in enumerate(main_courses)
-        ]
-        additional_courses = [
-            entry.with_id(str(len(main_courses) + i + 1))
-            for i, entry in enumerate(additional_courses)
-        ]
-        for entry in main_courses:
-            course_ids[entry.code] = entry.id
-        for entry in additional_courses:
-            course_ids[entry.code] = entry.id
+
+        def yield_courses() -> Generator[
+            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
+        ]:
+            for i, quarter in enumerate(major.plans[college].quarters, start=1):
+                for course in quarter:
+                    yield (
+                        main_courses
+                        if course.type == "DEPARTMENT" or course.overlaps_ge
+                        else additional_courses
+                    ), course, "", str(i)
+
     else:
-        for i, course in enumerate(major.curriculum()):
-            code = parse_course_name(course.course)
-            course_ids[code] = str(i + 1)
-            main_courses.append(CourseEntry(code, course, str(i + 1), ""))
+
+        def yield_courses() -> Generator[
+            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
+        ]:
+            for i, course in enumerate(major.curriculum(), start=1):
+                yield main_courses, course, str(i), ""
+
+    for target, course, course_id, term in yield_courses():
+        course_name = course.course_code
+        units = course.units
+        parsed = parse_course_name(course_name)
+        code: Optional[Tuple[str, str]] = None
+        if parsed:
+            subject, number, has_lab = parsed
+            code = subject, number
+            if has_lab:
+                course_name = f"{subject} {number}"
+                units = 3 if has_lab == "L" else 2.5
+                target.append(
+                    CourseEntry(
+                        (subject, number + has_lab),
+                        f"{subject} {number}{has_lab}",
+                        2 if has_lab == "L" else 2.5,
+                        course_id,
+                        term,
+                    )
+                )
+        target.append(CourseEntry(code, course_name, units, course_id, term))
+
+    main_courses = [
+        entry.with_id(str(i)) for i, entry in enumerate(main_courses, start=1)
+    ]
+    additional_courses = [
+        entry.with_id(str(i))
+        for i, entry in enumerate(additional_courses, start=len(main_courses) + 1)
+    ]
+    for entry in main_courses:
+        if entry.code:
+            course_ids[entry.code] = entry.id
+    for entry in additional_courses:
+        if entry.code:
+            course_ids[entry.code] = entry.id
 
     for courses in main_courses, additional_courses:
         if not college and courses is additional_courses:
             break
         yield ["Courses" if courses is main_courses else "Additional Courses"]
         yield HEADER
-        for (prefix, number), course, course_id, term in courses:
+        for code, course_name, units, course_id, term in courses:
+            prefix, number = code or ("", "")
             prereq_ids: List[str] = []
             coreq_ids: List[str] = []
-            if (prefix, number) in prereqs:
-                for alternatives in prereqs[prefix, number]:
+            if code in prereqs:
+                for alternatives in prereqs[code]:
                     for code, concurrent in alternatives:
                         if code in course_ids:
                             (coreq_ids if concurrent else prereq_ids).append(
@@ -155,13 +188,13 @@ def output_plan(
                             )
             yield [
                 course_id,
-                course.course.strip("*"),  # Asterisks seem to break the site
+                course_name.strip("*^ "),  # Asterisks seem to break the site
                 prefix,
                 number,
                 ";".join(prereq_ids),
                 ";".join(coreq_ids),
                 "",
-                f"{course.units:g}",  # https://stackoverflow.com/a/2440708
+                f"{units:g}",  # https://stackoverflow.com/a/2440708
                 "",
                 "",
                 term,
@@ -194,7 +227,7 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
 
 def output(major: str, college: Optional[str] = None) -> Generator[str, None, None]:
     return rows_to_csv(
-        output_plan(majors[major], college),
+        output_plan(major_plans[major], college),
         DEGREE_PLAN_COLS if college else CURRICULUM_COLS,
     )
 
@@ -218,5 +251,5 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 if __name__ == "__main__":
     to_file("files/CS26_Sixth.csv", output("CS26", "SI"))
-    for line in output("CS26", "SI"):
+    for line in output("CS26"):
         print(line, end="")
