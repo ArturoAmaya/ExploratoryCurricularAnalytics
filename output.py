@@ -250,6 +250,6 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 
 if __name__ == "__main__":
-    to_file("files/CS26_Sixth.csv", output("CS26", "SI"))
-    for line in output("CS26"):
+    to_file("files/TH27_Revelle.csv", output("TH27", "RE"))
+    for line in output("TH27"):
         print(line, end="")
