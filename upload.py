@@ -13,16 +13,18 @@ from parse import MajorInfo, major_codes
 
 load_dotenv()
 
-authenticity_token = os.getenv("AUTHENTICITY_TOKEN")
-if authenticity_token is None:
-    raise EnvironmentError(
-        "There is no `AUTHENTICITY_TOKEN` environment variable defined. See the README to see how to set up `.env`."
-    )
-session = os.getenv("CA_SESSION")
-if session is None:
-    raise EnvironmentError(
-        "There is no `CA_SESSION` environment variable defined. See the README to see how to set up `.env`."
-    )
+
+def get_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None:
+        raise EnvironmentError(
+            f"There is no `{name}` environment variable defined. See the README to see how to set up `.env`."
+        )
+    return value
+
+
+authenticity_token = get_env("AUTHENTICITY_TOKEN")
+session = get_env("CA_SESSION")
 
 BOUNDARY = "BOUNDARY"
 LINE = b"\r\n"
@@ -206,4 +208,33 @@ def upload_major(
 
 
 if __name__ == "__main__":
-    upload_major(major_codes["CR25"], 19409, 2022, "SY", log=True)
+    from argparse import ArgumentParser
+
+    parser = ArgumentParser(
+        description="Automatically upload a major's curriculum and degree plans onto Curricular Analytics."
+    )
+    parser.add_argument("major_code", help="The ISIS code of the major to upload.")
+    parser.add_argument(
+        "--org",
+        type=int,
+        help="The ID of the Curricular Analytics organization to add the curriculum to. Defaults to the ORG_ID environment variable.",
+    )
+    parser.add_argument(
+        "--year", type=int, help="The catalog year. Defaults to 2021.", default=2021
+    )
+    parser.add_argument(
+        "--initials",
+        help="Your initials, to sign the CSV file names. Defaults to the INITIALS environment variable.",
+    )
+    args = parser.parse_args()
+    major_code: str = args.major_code
+    if major_code not in major_codes:
+        raise KeyError(f"{major_code} is not a major code that I know of.")
+    org_id: Optional[int] = args.org
+    if org_id is None:
+        org_id = int(get_env("ORG_ID"))
+    year: int = args.year
+    initials: Optional[str] = args.initials
+    if initials is None:
+        initials = get_env("INITIALS")
+    upload_major(major_codes[major_code], org_id, year, initials, log=True)
