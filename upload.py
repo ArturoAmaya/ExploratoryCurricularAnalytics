@@ -1,3 +1,17 @@
+"""
+Automatically uploads a curriculum and each college's degree plan to Curricular
+Analytics.
+
+To authenticate yourself, it uses the `AUTHENTICITY_TOKEN` and `CA_SESSION`
+environment variables. See the README for how to get them.
+
+Exports:
+    `upload_major`, which takes a major code, the organization ID, the catalog
+    year, and your initials. It creates and uploads the curriculum and degree
+    plans for the major to the organization on Curricular Analytics. Your
+    initials are used to sign the CSV file names.
+"""
+
 import json
 import os
 import re
@@ -15,6 +29,10 @@ load_dotenv()
 
 
 def get_env(name: str) -> str:
+    """
+    Get an environment variable, and if it's not set, then tell the user to set
+    up their `.env` file.
+    """
     value = os.getenv(name)
     if value is None:
         raise EnvironmentError(
@@ -33,8 +51,20 @@ LINE = b"\r\n"
 def post_form(
     url: str,
     form: Dict[str, Union[str, Tuple[str, bytes]]],
-    headers: Dict[str, str] = {},
 ) -> None:
+    """
+    Submits an HTML form on Curricular Analytics with a POST request. The
+    request body is `multipart/form-data`, so it can contain files.
+
+    `url` is the URL that the form posts to (NOT the URL of the page that the
+    form is on). `form` contains a dictionary mapping field names (i.e. the
+    `name` attribute of the `<input />` elements) to string values or a tuple
+    with a file name and the contents of the file.
+
+    Handles authentication (includes the `Cookie` header based on the
+    `CA_SESSION` environment variable) and identifies and raises errors for when
+    the session or form's authenticity token are invalid.
+    """
     body: bytearray = bytearray()
     for name, value in form.items():
         body += f"--{BOUNDARY}".encode("utf-8")
@@ -64,7 +94,7 @@ def post_form(
                 url,
                 headers={
                     "Content-Type": f"multipart/form-data; boundary={BOUNDARY}",
-                    **headers,
+                    "Cookie": f"_curricularanalytics_session={session}",
                 },
                 data=body,
                 method="POST",
@@ -80,7 +110,51 @@ def post_form(
         ) if error.code == 422 else error
 
 
+def upload_curriculum(
+    organization_id: int, name: str, year: int, file_name: str, csv: str
+) -> None:
+    """
+    Creates a new curriculum under the given organization.
+    """
+    post_form(
+        "https://curricularanalytics.org/curriculums",
+        {
+            "authenticity_token": authenticity_token,
+            "curriculum[name]": name,
+            "curriculum[organization_id]": str(organization_id),
+            "curriculum[catalog_year]": str(year),
+            "curriculum[cip]": "",  # Curricular Analytics will get it from the CSV
+            "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
+            "entry_method": "csv_file",
+            "curriculum_json": "",
+            "commit": "Save",
+        },
+    )
+
+
+def upload_degree_plan(curriculum_id: int, name: str, file_name: str, csv: str) -> None:
+    """
+    Creates a new degree plan under the given curriculum.
+    """
+    post_form(
+        "https://curricularanalytics.org/degree_plans",
+        {
+            "authenticity_token": authenticity_token,
+            "degree_plan[name]": name,
+            "degree_plan[curriculum_id]": str(curriculum_id),
+            "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
+            "entry_method": "csv_file",
+            "curriculum_json": "",
+            "commit": "Save",
+        },
+    )
+
+
 class CurriculumEntry(NamedTuple):
+    """
+    A row in the table listing the user's curricula on Curricular Analytics.
+    """
+
     raw_name: str
     raw_organization: str
     cip_code: str
@@ -88,6 +162,10 @@ class CurriculumEntry(NamedTuple):
     date_created: str
 
     def curriculum_id(self) -> int:
+        """
+        Get the ID of the curriculum from its URL in the "Name" column
+        (`raw_name`).
+        """
         match = re.match(r'<a href="/curriculums/(\d+)', self.raw_name)
         if match is None:
             raise ValueError(
@@ -103,6 +181,27 @@ def get_curricula(
     items: int = 1,
     search: str = "",
 ) -> List[CurriculumEntry]:
+    """
+    Get the user's curricula on Curricular Analytics. This is equivalent to the
+    table the user sees at https://curricularanalytics.org/curriculums.
+
+    Used by `upload_major` to get the ID of the most recently created
+    curriculum.
+
+    `sort_by` should be the index of the column to sort by, and `direction` is
+    whether it should be sorted in ascending (`asc`) or descending (`desc`)
+    order. For example, to get the most recent curricula, the creation date is
+    the fifth column (index 4), and to put the latest date first, sort it in
+    descending order.
+
+    ```py
+    curricula = get_curricula(4, 'desc')
+    ```
+
+    `offset` is the index into the results to start returning curricula, while
+    `items` is the maximum number of curricula to get. `search` filters the list
+    of curricula by a keyword.
+    """
     params = urlencode(
         {
             "order[0][column]": sort_by,
@@ -135,43 +234,11 @@ def get_curricula(
         ) if error.code == 401 else error
 
 
-def upload_degree_plan(curriculum_id: int, name: str, file_name: str, csv: str) -> None:
-    post_form(
-        "https://curricularanalytics.org/degree_plans",
-        {
-            "authenticity_token": authenticity_token,
-            "degree_plan[name]": name,
-            "degree_plan[curriculum_id]": str(curriculum_id),
-            "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
-            "entry_method": "csv_file",
-            "curriculum_json": "",
-            "commit": "Save",
-        },
-        headers={"Cookie": f"_curricularanalytics_session={session}"},
-    )
-
-
-def upload_curriculum(
-    organization_id: int, name: str, year: int, file_name: str, csv: str
-) -> None:
-    post_form(
-        "https://curricularanalytics.org/curriculums",
-        {
-            "authenticity_token": authenticity_token,
-            "curriculum[name]": name,
-            "curriculum[organization_id]": str(organization_id),
-            "curriculum[catalog_year]": str(year),
-            "curriculum[cip]": "",  # Curricular Analytics will get it from the CSV
-            "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
-            "entry_method": "csv_file",
-            "curriculum_json": "",
-            "commit": "Save",
-        },
-        headers={"Cookie": f"_curricularanalytics_session={session}"},
-    )
-
-
 def get_csv(major_code: str, college: Optional[str] = None) -> str:
+    """
+    Stores the CSV file for a curriculum or degree plan in a string and returns
+    it.
+    """
     csv = ""
     for line in output(major_code, college):
         csv += line
@@ -181,6 +248,16 @@ def get_csv(major_code: str, college: Optional[str] = None) -> str:
 def upload_major(
     major: MajorInfo, organization_id: int, year: int, initials: str, log: bool = False
 ) -> None:
+    """
+    Uploads the curriculum and all its college degree plans of the given major
+    to the given organization.
+
+    We're supposed to sign the CSV files with our initials, so `initials` is
+    prepended to the CSV file names uploaded to Curricular Analytics.
+
+    Set `log` to true to print a status message after every request, like when a
+    CSV file is uploaded.
+    """
     major_code = major.isis_code
     upload_curriculum(
         organization_id,
