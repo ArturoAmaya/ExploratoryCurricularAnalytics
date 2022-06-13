@@ -139,7 +139,7 @@ class Plan(NamedTuple):
     plans for Curricular Analytics.
     """
 
-    quarters: List[Set[PlannedCourse]]
+    quarters: List[List[PlannedCourse]]
 
 
 class MajorPlans(NamedTuple):
@@ -201,11 +201,11 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         if major_code not in majors:
             majors[major_code] = MajorPlans(department, major_code, {})
         if college_code not in majors[major_code].plans:
-            majors[major_code].plans[college_code] = Plan([set() for _ in range(12)])
+            majors[major_code].plans[college_code] = Plan([[] for _ in range(12)])
         quarter = (int(year) - 1) * 3 + int(quarter) - 1
         if course_title != "COLLEGE" and course_title != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
-        majors[major_code].plans[college_code].quarters[quarter].add(
+        majors[major_code].plans[college_code].quarters[quarter].append(
             PlannedCourse(course_code, float(units), course_title, overlap == "Y")
         )
     return majors
