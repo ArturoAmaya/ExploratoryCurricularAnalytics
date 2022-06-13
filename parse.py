@@ -139,7 +139,7 @@ class Plan(NamedTuple):
     plans for Curricular Analytics.
     """
 
-    quarters: List[Set[PlannedCourse]]
+    quarters: List[List[PlannedCourse]]
 
 
 class MajorPlans(NamedTuple):
@@ -154,11 +154,15 @@ class MajorPlans(NamedTuple):
     major_code: str
     plans: Dict[str, Plan]
 
-    def curriculum(self, college: str = "TH") -> Set[PlannedCourse]:
+    def curriculum(self, college: str = "TH") -> List[PlannedCourse]:
         """
-        Returns a set of courses based on the specified college's degree plan
+        Returns a list of courses based on the specified college's degree plan
         with college-specific courses removed. Can be used to create a
         curriculum for Curricular Analytics.
+
+        Two curricula are equivalent if they have the same of each number of
+        course, regardless of the order. However, there can be multiple
+        identical courses (eg "ELECTIVE"), so this method does not return a set.
 
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
@@ -167,12 +171,12 @@ class MajorPlans(NamedTuple):
         because it appears to be a generally good college to base curricula off
         of (see #14).
         """
-        return set(
+        return [
             course
             for quarter in self.plans[college].quarters
             for course in quarter
             if course.type == "DEPARTMENT" or course.overlaps_ge
-        )
+        ]
 
 
 def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
@@ -197,11 +201,11 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         if major_code not in majors:
             majors[major_code] = MajorPlans(department, major_code, {})
         if college_code not in majors[major_code].plans:
-            majors[major_code].plans[college_code] = Plan([set() for _ in range(12)])
+            majors[major_code].plans[college_code] = Plan([[] for _ in range(12)])
         quarter = (int(year) - 1) * 3 + int(quarter) - 1
         if course_title != "COLLEGE" and course_title != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
-        majors[major_code].plans[college_code].quarters[quarter].add(
+        majors[major_code].plans[college_code].quarters[quarter].append(
             PlannedCourse(course_code, float(units), course_title, overlap == "Y")
         )
     return majors
