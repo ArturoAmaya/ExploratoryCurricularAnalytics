@@ -9,7 +9,7 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Tuple
+from typing import Generator, Iterable, List, NamedTuple, Optional, Tuple
 
 from parse import (
     CourseCode,
@@ -24,11 +24,6 @@ from parse_course_name import parse_course_name
 
 CourseId = str
 Term = str
-
-# Set units of a course when the academic plans have it wrong (#20)
-unit_overrides: Dict[Tuple[str, str], float] = {
-    ("MATH", "11"): 5,
-}
 
 
 class CourseEntry(NamedTuple):
@@ -161,6 +156,11 @@ def output_plan(
     for course, major_course, term in yield_courses():
         course_name = course.course_code
         units = course.units
+        if course_name == "MATH 11":
+            # Override academic plan's math 11 units to 5.0 units per course
+            # catalog. Must exactly match `MATH 11` because `MATH 11 OR PSYC 60`
+            # probably should still be 4.0 units (#20)
+            units = 5
         parsed = parse_course_name(course_name)
         code: Optional[Tuple[str, str]] = None
         if parsed:
@@ -180,8 +180,6 @@ def output_plan(
                 )
                 course_name = f"{subject} {number}{has_lab}"
                 code = subject, number + has_lab
-            elif code in unit_overrides:
-                units = unit_overrides[code]
         courses.append(
             CourseEntry(
                 code, course_name, units, get_id(major_course), term, major_course
