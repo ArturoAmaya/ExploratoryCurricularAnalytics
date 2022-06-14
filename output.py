@@ -156,6 +156,11 @@ def output_plan(
     for course, major_course, term in yield_courses():
         course_name = course.course_code
         units = course.units
+        if course_name == "MATH 11":
+            # Override academic plan's math 11 units to 5.0 units per course
+            # catalog. Must exactly match `MATH 11` because `MATH 11 OR PSYC 60`
+            # probably should still be 4.0 units (#20)
+            units = 5
         parsed = parse_course_name(course_name)
         code: Optional[Tuple[str, str]] = None
         if parsed:
