@@ -22,8 +22,11 @@ from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv  # type: ignore
 
+from departments import departments
 from output import college_names, output
 from parse import MajorInfo, major_codes
+
+__all__ = ["upload_major"]
 
 load_dotenv()
 
@@ -261,7 +264,7 @@ def upload_major(
     major_code = major.isis_code
     upload_curriculum(
         organization_id,
-        f"{major_code}-{major.name}",  # TODO: Get department name (per instructions)
+        f"{major_code}-{departments[major.department]}",
         year,
         f"{initials}-Curriculum Plan-{major_code}.csv",
         get_csv(major_code),

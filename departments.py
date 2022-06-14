@@ -9,6 +9,8 @@ Exports:
 import json
 from typing import Dict
 
+__all__ = ["departments"]
+
 
 departments: Dict[str, str] = {}
 with open("./files/LoadSearchControls.json") as controls:
