@@ -9,12 +9,13 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Tuple
+from typing import Generator, Iterable, List, NamedTuple, Optional, Tuple
 
 from parse import (
     CourseCode,
     MajorPlans,
     PlannedCourse,
+    Prerequisite,
     major_plans,
     major_codes,
     prereqs,
@@ -29,11 +30,19 @@ class CourseEntry(NamedTuple):
     code: Optional[CourseCode]
     course_name: str
     units: float
-    id: str
+    id: int
     term: str
+    major_course: bool
 
-    def with_id(self, new_id: str) -> "CourseEntry":
-        return CourseEntry(self.code, self.course_name, self.units, new_id, self.term)
+    def with_id(self, new_id: int) -> "CourseEntry":
+        return CourseEntry(
+            self.code,
+            self.course_name,
+            self.units,
+            new_id,
+            self.term,
+            self.major_course,
+        )
 
 
 INSTITUTION = "University of California, San Diego"
@@ -110,31 +119,41 @@ def output_plan(
         cip=major_info.cip_code,
     )
 
-    course_ids: Dict[CourseCode, str] = {}
-    main_courses: List[CourseEntry] = []
-    additional_courses: List[CourseEntry] = []
     if college:
 
-        def yield_courses() -> Generator[
-            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
-        ]:
+        def yield_courses() -> Generator[Tuple[PlannedCourse, bool, str], None, None]:
             for i, quarter in enumerate(major.plans[college].quarters, start=1):
                 for course in quarter:
-                    yield (
-                        main_courses
-                        if course.type == "DEPARTMENT" or course.overlaps_ge
-                        else additional_courses
-                    ), course, "", str(i)
+                    yield course, course.type == "DEPARTMENT" or course.overlaps_ge, str(
+                        i
+                    )
 
     else:
 
-        def yield_courses() -> Generator[
-            Tuple[List[CourseEntry], PlannedCourse, str, str], None, None
-        ]:
-            for i, course in enumerate(major.curriculum(), start=1):
-                yield main_courses, course, str(i), ""
+        def yield_courses() -> Generator[Tuple[PlannedCourse, bool, str], None, None]:
+            for course in major.curriculum():
+                yield course, True, ""
 
-    for target, course, course_id, term in yield_courses():
+    courses: List[CourseEntry] = []
+    major_id: int = 0
+    college_id: int = 0
+
+    def get_id(major_course: bool) -> int:
+        """
+        Helper function to get the next ID for a course. Not pure. Increments
+        `major_id` or `college_id`, depending on whether `major_course` (whether
+        the course is a major requirement) is true or not, and returns the new
+        value.
+        """
+        nonlocal major_id, college_id
+        if major_course:
+            major_id += 1
+            return major_id
+        else:
+            college_id += 1
+            return college_id
+
+    for course, major_course, term in yield_courses():
         course_name = course.course_code
         units = course.units
         parsed = parse_course_name(course_name)
@@ -143,51 +162,57 @@ def output_plan(
             subject, number, has_lab = parsed
             code = subject, number
             if has_lab:
-                course_name = f"{subject} {number}"
-                units = 3 if has_lab == "L" else 2.5
-                target.append(
+                course_name = f"{subject} {number}{has_lab}"
+                units = 2 if has_lab == "L" else 2.5
+                courses.append(
                     CourseEntry(
                         (subject, number + has_lab),
-                        f"{subject} {number}{has_lab}",
+                        f"{subject} {number}",
                         2 if has_lab == "L" else 2.5,
-                        course_id,
+                        get_id(major_course),
                         term,
+                        major_course,
                     )
                 )
-        target.append(CourseEntry(code, course_name, units, course_id, term))
+        courses.append(
+            CourseEntry(
+                code, course_name, units, get_id(major_course), term, major_course
+            )
+        )
 
-    main_courses = [
-        entry.with_id(str(i)) for i, entry in enumerate(main_courses, start=1)
+    # Count major courses (https://stackoverflow.com/a/157121)
+    major_courses = sum(1 for course in courses if course.major_course)
+    courses = [
+        course if course.major_course else course.with_id(course.id + major_courses)
+        for course in courses
     ]
-    additional_courses = [
-        entry.with_id(str(i))
-        for i, entry in enumerate(additional_courses, start=len(main_courses) + 1)
-    ]
-    for entry in main_courses:
-        if entry.code:
-            course_ids[entry.code] = entry.id
-    for entry in additional_courses:
-        if entry.code:
-            course_ids[entry.code] = entry.id
 
-    for courses in main_courses, additional_courses:
-        if not college and courses is additional_courses:
+    def find_prereq(
+        prereq_ids: List[str], coreq_ids: List[str], alternatives: List[Prerequisite]
+    ) -> None:
+        for course in courses:
+            for code, concurrent in alternatives:
+                if course.code == code:
+                    (coreq_ids if concurrent else prereq_ids).append(str(course.id))
+                    return
+
+    for major_course_section in True, False:
+        if not college and not major_course_section:
             break
-        yield ["Courses" if courses is main_courses else "Additional Courses"]
+        yield ["Courses" if major_course_section else "Additional Courses"]
         yield HEADER
-        for code, course_name, units, course_id, term in courses:
+        for code, course_name, units, course_id, term, major_course in courses:
+            if major_course != major_course_section:
+                continue
             prefix, number = code or ("", "")
             prereq_ids: List[str] = []
             coreq_ids: List[str] = []
             if code in prereqs:
                 for alternatives in prereqs[code]:
-                    for code, concurrent in alternatives:
-                        if code in course_ids:
-                            (coreq_ids if concurrent else prereq_ids).append(
-                                course_ids[code]
-                            )
+                    find_prereq(prereq_ids, coreq_ids, alternatives)
+
             yield [
-                course_id,
+                str(course_id),
                 course_name.strip("*^ "),  # Asterisks seem to break the site
                 prefix,
                 number,
