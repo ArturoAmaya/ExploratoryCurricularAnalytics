@@ -9,7 +9,7 @@ Exports:
     variable.
 """
 
-from typing import Generator, Iterable, List, NamedTuple, Optional, Tuple
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Tuple
 
 from parse import (
     CourseCode,
@@ -24,6 +24,11 @@ from parse_course_name import parse_course_name
 
 CourseId = str
 Term = str
+
+# Set units of a course when the academic plans have it wrong (#20)
+unit_overrides: Dict[Tuple[str, str], float] = {
+    ("MATH", "11"): 5,
+}
 
 
 class CourseEntry(NamedTuple):
@@ -175,6 +180,8 @@ def output_plan(
                 )
                 course_name = f"{subject} {number}{has_lab}"
                 code = subject, number + has_lab
+            elif code in unit_overrides:
+                units = unit_overrides[code]
         courses.append(
             CourseEntry(
                 code, course_name, units, get_id(major_course), term, major_course
