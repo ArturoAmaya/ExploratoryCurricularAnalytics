@@ -162,18 +162,19 @@ def output_plan(
             subject, number, has_lab = parsed
             code = subject, number
             if has_lab:
-                course_name = f"{subject} {number}{has_lab}"
                 units = 2 if has_lab == "L" else 2.5
                 courses.append(
                     CourseEntry(
-                        (subject, number + has_lab),
+                        code,
                         f"{subject} {number}",
-                        2 if has_lab == "L" else 2.5,
+                        3 if has_lab == "L" else 2.5,
                         get_id(major_course),
                         term,
                         major_course,
                     )
                 )
+                course_name = f"{subject} {number}{has_lab}"
+                code = subject, number + has_lab
         courses.append(
             CourseEntry(
                 code, course_name, units, get_id(major_course), term, major_course
