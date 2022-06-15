@@ -17,6 +17,8 @@ Exports:
 
 from typing import Dict, List, Literal, NamedTuple, Optional, Set, Tuple
 
+__all__ = ["prereqs", "major_plans", "major_codes"]
+
 CourseCode = Tuple[str, str]
 
 
@@ -254,7 +256,7 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
             isis_code,
             description,
             department,
-            cip_code,
+            cip_code[0:2] + "." + cip_code[2:],
             set(award_types.split(" ")) if award_types else set(),
         )
     return majors
