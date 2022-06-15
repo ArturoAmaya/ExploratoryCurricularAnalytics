@@ -1,10 +1,17 @@
 """
 Split course names from the academic plans into its subject and number to get
 its prerequisites.
+
+Exports:
+    `parse_course_name`, which takes the raw name of a course from an academic
+    plan and attempts to get a course subject and number out of it, or None if
+    it can't.
 """
 
 import re
 from typing import Literal, Optional, Tuple
+
+__all__ = ["parse_course_name"]
 
 
 def parse_course_name(
