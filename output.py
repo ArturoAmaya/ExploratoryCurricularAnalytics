@@ -265,7 +265,9 @@ class MajorOutput:
 
                 prereq_ids: List[int] = []
                 coreq_ids: List[int] = []
-                if code in prereqs:
+                # Math 18 has no prereqs because it only requires pre-calc,
+                # which we assume the student has credit for
+                if code in prereqs and code != ("MATH", "18"):
                     for alternatives in prereqs[code]:
                         find_prereq(prereq_ids, coreq_ids, alternatives)
 
