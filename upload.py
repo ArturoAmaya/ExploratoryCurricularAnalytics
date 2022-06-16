@@ -22,8 +22,9 @@ from urllib.request import Request, urlopen
 
 from dotenv import load_dotenv  # type: ignore
 
+from college_names import college_names
 from departments import departments
-from output import college_names, output
+from output import MajorOutput
 from parse import MajorInfo, major_codes
 
 __all__ = ["upload_major"]
@@ -237,17 +238,6 @@ def get_curricula(
         ) if error.code == 401 else error
 
 
-def get_csv(major_code: str, college: Optional[str] = None) -> str:
-    """
-    Stores the CSV file for a curriculum or degree plan in a string and returns
-    it.
-    """
-    csv = ""
-    for line in output(major_code, college):
-        csv += line
-    return csv
-
-
 def upload_major(
     major: MajorInfo, organization_id: int, year: int, initials: str, log: bool = False
 ) -> None:
@@ -262,12 +252,13 @@ def upload_major(
     CSV file is uploaded.
     """
     major_code = major.isis_code
+    output = MajorOutput(major_code)
     upload_curriculum(
         organization_id,
         f"{major_code}-{departments[major.department]}",
         year,
         f"{initials}-Curriculum Plan-{major_code}.csv",
-        get_csv(major_code),
+        output.output(),
     )
     if log:
         print(f"[{major_code}] Curriculum uploaded")
@@ -281,7 +272,7 @@ def upload_major(
             curriculum_id,
             f"{major_code}/{college_name}",
             f"SY-Degree Plan-{college_name}-{major_code}.csv",
-            get_csv(major_code, college_code),
+            output.output(college_code),
         )
         if log:
             print(f"[{major_code}] {college_name} degree plan uploaded")
