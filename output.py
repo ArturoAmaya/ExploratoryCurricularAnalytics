@@ -22,6 +22,8 @@ from parse import (
 )
 from parse_course_name import parse_course_name
 
+__all__ = ['output']
+
 CourseId = str
 Term = str
 
