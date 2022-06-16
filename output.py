@@ -184,14 +184,16 @@ def output_plan(
                 code = subject, number + has_lab
         courses.append(
             CourseEntry(
-                code, course_name, units, get_id(major_course), term, major_course
+                code, course_name, units, get_id(
+                    major_course), term, major_course
             )
         )
 
     # Count major courses (https://stackoverflow.com/a/157121)
     major_courses = sum(1 for course in courses if course.major_course)
     courses = [
-        course if course.major_course else course.with_id(course.id + major_courses)
+        course if course.major_course else course.with_id(
+            course.id + major_courses)
         for course in courses
     ]
 
@@ -283,6 +285,6 @@ def to_file(path: str, csv: Iterable[str]) -> None:
 
 
 if __name__ == "__main__":
-    to_file("files/TH27_Revelle.csv", output("TH27", "RE"))
-    for line in output("TH27"):
+    to_file("files/CS26_Revelle.csv", output("CS26", "RE"))
+    for line in output("CS26"):
         print(line, end="")

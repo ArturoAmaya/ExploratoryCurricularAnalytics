@@ -89,7 +89,8 @@ def read_csv_from(
                         elif char == ",":
                             prefix: str = row_overflow[1] if row_overflow else ""
                             row_overflow = None
-                            row.append(parse_field(prefix + line[last_index:i]))
+                            row.append(parse_field(
+                                prefix + line[last_index:i]))
                             last_index = i + 1
                 if in_quotes:
                     prefix: str = row_overflow[1] if row_overflow else ""
@@ -186,6 +187,8 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
     Converts the academic plans CSV rows into a dictionary of major codes to
     `Major` objects.
     """
+    def sort(course: PlannedCourse) -> str:
+        return course.course_code
     majors: Dict[str, MajorPlans] = {}
     for (
         department,  # Department
@@ -203,13 +206,17 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         if major_code not in majors:
             majors[major_code] = MajorPlans(department, major_code, {})
         if college_code not in majors[major_code].plans:
-            majors[major_code].plans[college_code] = Plan([[] for _ in range(12)])
+            majors[major_code].plans[college_code] = Plan(
+                [[] for _ in range(12)])
         quarter = (int(year) - 1) * 3 + int(quarter) - 1
         if course_title != "COLLEGE" and course_title != "DEPARTMENT":
-            raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
+            raise TypeError(
+                'Course type is neither "COLLEGE" nor "DEPARTMENT"')
         majors[major_code].plans[college_code].quarters[quarter].append(
-            PlannedCourse(course_code, float(units), course_title, overlap == "Y")
+            PlannedCourse(course_code, float(units),
+                          course_title, overlap == "Y")
         )
+        majors[major_code].plans[college_code].quarters[quarter].sort(key=sort)
     return majors
 
 
