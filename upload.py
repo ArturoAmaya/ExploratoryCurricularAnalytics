@@ -268,6 +268,8 @@ def upload_major(
             f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
         )
     for college_code, college_name in college_names.items():
+        if college_code not in output.plans.plans:
+            continue
         upload_degree_plan(
             curriculum_id,
             f"{major_code}/{college_name}",

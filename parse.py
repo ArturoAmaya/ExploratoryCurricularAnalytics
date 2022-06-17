@@ -144,6 +144,10 @@ class Plan(NamedTuple):
     quarters: List[List[PlannedCourse]]
 
 
+# College codes from least to most weird colleges (see #14)
+least_weird_colleges = ["TH", "WA", "SN", "MU", "FI", "RE", "SI"]
+
+
 class MajorPlans(NamedTuple):
     """
     Represents a major's set of academic plans. Contains plans for each college.
@@ -156,7 +160,7 @@ class MajorPlans(NamedTuple):
     major_code: str
     plans: Dict[str, Plan]
 
-    def curriculum(self, college: str = "TH") -> List[PlannedCourse]:
+    def curriculum(self, college: Optional[str] = None) -> List[PlannedCourse]:
         """
         Returns a list of courses based on the specified college's degree plan
         with college-specific courses removed. Can be used to create a
@@ -169,10 +173,17 @@ class MajorPlans(NamedTuple):
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
 
-        The default college is intentionally set to Marshall (Third College)
-        because it appears to be a generally good college to base curricula off
-        of (see #14).
+        If no college is specified, it will try Marshall (Third College) by
+        default because it appears to be a generally good college to base
+        curricula off of (see #14). If there is no Marshall plan, it will try a
+        different college.
         """
+        if college is None:
+            for college_code in least_weird_colleges:
+                if college_code in self.plans:
+                    college = college_code
+            if college is None:
+                raise KeyError("Major has no college plans.")
         return [
             course
             for quarter in self.plans[college].quarters
@@ -287,6 +298,4 @@ major_codes = major_rows_to_dict(
 )
 
 if __name__ == "__main__":
-    print(prereqs["CAT", "1"])
-    print(major_plans["CS26"].curriculum())
-    print(major_codes["CS26"])
+    print(major_plans.keys())
