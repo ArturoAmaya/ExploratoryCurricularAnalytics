@@ -1,9 +1,29 @@
+from http.client import HTTPResponse
 import json
 import re
 from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+
+class UrlOpenReturn(HTTPResponse):
+    """
+    HACK: Mimic urllib.request.urlopen's return value. Their docs say they
+    return a `HTTPResponse`, but that doesn't have a `url` attribute, and I
+    don't know how to do intersections in Python typing.
+    """
+
+    url: str
+
+
+class Blob(bytearray):
+    def write_line(self, line: Union[str, bytes] = "") -> None:
+        if type(line) is str:
+            self.extend(line.encode("utf-8"))
+        elif type(line) is bytes:
+            self.extend(line)
+        self.extend(b"\r\n")
 
 
 HOST = "https://curricularanalytics.org"
@@ -45,31 +65,52 @@ class Session:
         self.session = session
         self.authenticity_token = authenticity_token
 
-    def get_auth_token(self) -> str:
-        if self.authenticity_token is None:
-            return "TODO"
-        else:
-            return self.authenticity_token
-
-    def get_json(self, path: str) -> Any:
+    def request(
+        self,
+        path: str,
+        headers: Dict[str, str] = {},
+        data: Optional[bytes] = None,
+        method: str = "GET",
+    ) -> UrlOpenReturn:
         try:
-            with urlopen(
+            return urlopen(
                 Request(
                     HOST + path,
                     headers={
-                        "Accept": "application/json",
+                        **headers,
                         "Cookie": f"_curricularanalytics_session={self.session}",
                     },
+                    data=data,
+                    method=method,
                 )
-            ) as response:
-                return json.load(response)
+            )
         except HTTPError as error:
             raise RuntimeError(
                 "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
             ) if error.code == 401 else error
 
+    def get_json(self, path: str) -> Any:
+        with self.request(path, {"Accept": "application/json"}) as response:
+            return json.load(response)
+
+    def get_auth_token(self) -> str:
+        if self.authenticity_token is None:
+            with self.request("/curriculums/new") as response:
+                match = re.search(
+                    rb'<input type="hidden" name="authenticity_token" value="([\w+=]+)" />',
+                    response.read(),
+                )
+                if match is None:
+                    raise RuntimeError(
+                        "Could not get `authenticity_token` from a form."
+                    )
+                token = match.group(1).decode("utf-8")
+                self.authenticity_token = token
+                return token
+        else:
+            return self.authenticity_token
+
     BOUNDARY = "BOUNDARY"
-    LINE = b"\r\n"
 
     def post_form(
         self,
@@ -89,49 +130,32 @@ class Session:
         `CA_SESSION` environment variable) and identifies and raises errors for when
         the session or form's authenticity token are invalid.
         """
-        body: bytearray = bytearray()
+        body: Blob = Blob()
         for name, value in form.items():
-            body += f"--{Session.BOUNDARY}".encode("utf-8")
-            body += Session.LINE
+            body.write_line(f"--{Session.BOUNDARY}")
             if type(value) is str:
-                body += f'Content-Disposition: form-data; name="{name}"'.encode("utf-8")
-                body += Session.LINE
-                body += Session.LINE
-                body += value.encode("utf-8")
-                body += Session.LINE
+                body.write_line(f'Content-Disposition: form-data; name="{name}"')
+                body.write_line()
+                body.write_line(value)
             elif type(value) is tuple:
                 file_name, content = value
-                body += f'Content-Disposition: form-data; name="{name}"; filename="{file_name}"'.encode(
-                    "utf-8"
+                body.write_line(
+                    f'Content-Disposition: form-data; name="{name}"; filename="{file_name}"'
                 )
-                body += Session.LINE
-                body += b"Content-Type: application/octet-stream"
-                body += Session.LINE
-                body += Session.LINE
-                body += content
-                body += Session.LINE
-        body += f"--{Session.BOUNDARY}--".encode("utf-8")
-        body += Session.LINE
-        try:
-            with urlopen(
-                Request(
-                    HOST + path,
-                    headers={
-                        "Content-Type": f"multipart/form-data; boundary={Session.BOUNDARY}",
-                        "Cookie": f"_curricularanalytics_session={self.session}",
-                    },
-                    data=body,
-                    method="POST",
+                body.write_line("Content-Type: application/octet-stream")
+                body.write_line()
+                body.write_line(content)
+        body.write_line(f"--{Session.BOUNDARY}--")
+        with self.request(
+            path,
+            {"Content-Type": f"multipart/form-data; boundary={Session.BOUNDARY}"},
+            body,
+            "POST",
+        ) as response:
+            if response.url == "https://curricularanalytics.org/users/sign_in":
+                raise RuntimeError(
+                    "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
                 )
-            ) as response:
-                if response.url == "https://curricularanalytics.org/users/sign_in":
-                    raise RuntimeError(
-                        "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
-                    )
-        except HTTPError as error:
-            raise RuntimeError(
-                "Curricular Analytics doesn't seem to accept your `AUTHENTICITY_TOKEN` environment variable. Could you try getting a new one? See the README for how."
-            ) if error.code == 422 else error
 
     def upload_curriculum(
         self, organization_id: int, name: str, year: int, file_name: str, csv: str
@@ -216,3 +240,16 @@ class Session:
             CurriculumEntry(raw_name, raw_organization, cip_code, year, date_created)
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
+
+
+if __name__ == "__main__":
+    import os
+    from dotenv import load_dotenv  # type: ignore
+
+    load_dotenv()
+    ca_session = os.getenv("CA_SESSION")
+    if ca_session is None:
+        raise EnvironmentError("No CA_SESSION environment variable")
+    session = Session(ca_session, None)
+
+    print(session.get_auth_token())
