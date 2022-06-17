@@ -9,7 +9,6 @@ Exports:
     variable.
 """
 
-import enum
 from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
 from college_names import college_names
 
@@ -285,8 +284,8 @@ class MajorOutput:
                         find_prereq(prereq_ids, coreq_ids, alternatives)
 
                 if course_title in duplicate_titles:
-                    course_title = f"{course_title} {duplicate_titles[course_title]}"
                     duplicate_titles[course_title] += 1
+                    course_title = f"{course_title} {duplicate_titles[course_title]}"
 
                 subject, number = code
                 yield [
@@ -304,6 +303,8 @@ class MajorOutput:
                 ]
 
     def output(self, college: Optional[str] = None) -> str:
+        if college is not None and college not in self.plans.plans:
+            raise KeyError(f"No degree plan available for {college}.")
         cols = DEGREE_PLAN_COLS if college else CURRICULUM_COLS
         csv = ""
         for line in rows_to_csv(self.output_plan(college), cols):
