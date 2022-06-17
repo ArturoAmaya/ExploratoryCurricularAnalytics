@@ -289,4 +289,4 @@ major_codes = major_rows_to_dict(
 if __name__ == "__main__":
     print(prereqs["CAT", "1"])
     print(major_plans["CS26"].curriculum())
-    print(major_codes["CS26"])
+    print(major_codes.keys())

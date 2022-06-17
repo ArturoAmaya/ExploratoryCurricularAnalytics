@@ -9,6 +9,7 @@ Exports:
     variable.
 """
 
+import enum
 from typing import Dict, Generator, Iterable, List, NamedTuple, Optional
 from college_names import college_names
 
@@ -53,7 +54,11 @@ class InputCourse(NamedTuple):
         if units is None:
             units = self.course.units
         return ProcessedCourse(
-            course_title, code or ("", ""), units, self.major_course, self.term
+            clean_course_title(course_title),
+            code or ("", ""),
+            units,
+            self.major_course,
+            self.term,
         )
 
 
@@ -228,6 +233,15 @@ class MajorOutput:
                 course_ids[course.code] = current_id
                 current_id += 1
 
+        # Get duplicate course titles so can start with "GE 1" and so on
+        course_titles = [course.course_title for course in processed_courses]
+        duplicate_titles = {
+            title: 0
+            for i, title in enumerate(course_titles)
+            if title in course_titles[0:i]
+        }
+
+        # 4. Get prerequisites and output
         def find_prereq(
             prereq_ids: List[int],
             coreq_ids: List[int],
@@ -243,7 +257,6 @@ class MajorOutput:
                         )
                         return
 
-        # 4. Get prerequisites and output
         # In case there are duplicate courses, only let a course in course_ids
         # get used once
         claimed_ids = set(course_ids.keys())
@@ -271,10 +284,14 @@ class MajorOutput:
                     for alternatives in prereqs[code]:
                         find_prereq(prereq_ids, coreq_ids, alternatives)
 
+                if course_title in duplicate_titles:
+                    course_title = f"{course_title} {duplicate_titles[course_title]}"
+                    duplicate_titles[course_title] += 1
+
                 subject, number = code
                 yield [
                     str(course_id),
-                    clean_course_title(course_title),
+                    course_title,
                     subject,
                     number,
                     ";".join(map(str, prereq_ids)),
