@@ -21,7 +21,7 @@ from parse import (
     major_codes,
     prereqs,
 )
-from parse_course_name import parse_course_name
+from parse_course_name import clean_course_title, parse_course_name
 
 __all__ = ["MajorOutput"]
 
@@ -274,7 +274,7 @@ class MajorOutput:
                 subject, number = code
                 yield [
                     str(course_id),
-                    course_title.strip("*^ "),  # Asterisks seem to break the site
+                    clean_course_title(course_title),
                     subject,
                     number,
                     ";".join(map(str, prereq_ids)),
