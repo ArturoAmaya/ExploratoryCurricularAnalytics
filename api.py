@@ -95,9 +95,9 @@ class Session:
 
     def get_auth_token(self) -> str:
         if self.authenticity_token is None:
-            with self.request("/curriculums/new") as response:
+            with self.request("/degree_plans") as response:
                 match = re.search(
-                    rb'<input type="hidden" name="authenticity_token" value="([\w+=]+)" />',
+                    rb'<meta name="csrf-token" content="([\w+=/]+)" />',
                     response.read(),
                 )
                 if match is None:
@@ -130,29 +130,51 @@ class Session:
         `CA_SESSION` environment variable) and identifies and raises errors for when
         the session or form's authenticity token are invalid.
         """
-        body: Blob = Blob()
-        for name, value in form.items():
-            body.write_line(f"--{Session.BOUNDARY}")
-            if type(value) is str:
-                body.write_line(f'Content-Disposition: form-data; name="{name}"')
-                body.write_line()
-                body.write_line(value)
-            elif type(value) is tuple:
-                file_name, content = value
-                body.write_line(
-                    f'Content-Disposition: form-data; name="{name}"; filename="{file_name}"'
+        if all(type(value) is str for value in form.values()):
+            print(
+                urlencode(
+                    {
+                        name: value if type(value) is str else ""
+                        for name, value in form.items()
+                    }
                 )
-                body.write_line("Content-Type: application/octet-stream")
-                body.write_line()
-                body.write_line(content)
-        body.write_line(f"--{Session.BOUNDARY}--")
-        with self.request(
-            path,
-            {"Content-Type": f"multipart/form-data; boundary={Session.BOUNDARY}"},
-            body,
-            "POST",
-        ) as response:
-            if response.url == "https://curricularanalytics.org/users/sign_in":
+            )
+            request = self.request(
+                path,
+                {"Content-Type": "application/x-www-form-urlencoded"},
+                urlencode(
+                    {
+                        name: value if type(value) is str else ""
+                        for name, value in form.items()
+                    }
+                ).encode("utf-8"),
+                "POST",
+            )
+        else:
+            body: Blob = Blob()
+            for name, value in form.items():
+                body.write_line(f"--{Session.BOUNDARY}")
+                if type(value) is str:
+                    body.write_line(f'Content-Disposition: form-data; name="{name}"')
+                    body.write_line()
+                    body.write_line(value)
+                elif type(value) is tuple:
+                    file_name, content = value
+                    body.write_line(
+                        f'Content-Disposition: form-data; name="{name}"; filename="{file_name}"'
+                    )
+                    body.write_line("Content-Type: application/octet-stream")
+                    body.write_line()
+                    body.write_line(content)
+            body.write_line(f"--{Session.BOUNDARY}--")
+            request = self.request(
+                path,
+                {"Content-Type": f"multipart/form-data; boundary={Session.BOUNDARY}"},
+                body,
+                "POST",
+            )
+        with request as response:
+            if response.url == HOST + "/users/sign_in":
                 raise RuntimeError(
                     "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
                 )
@@ -164,7 +186,7 @@ class Session:
         Creates a new curriculum under the given organization.
         """
         self.post_form(
-            "https://curricularanalytics.org/curriculums",
+            "/curriculums",
             {
                 "authenticity_token": self.get_auth_token(),
                 "curriculum[name]": name,
@@ -185,7 +207,7 @@ class Session:
         Creates a new degree plan under the given curriculum.
         """
         self.post_form(
-            "https://curricularanalytics.org/degree_plans",
+            "/degree_plans",
             {
                 "authenticity_token": self.get_auth_token(),
                 "degree_plan[name]": name,
@@ -241,6 +263,15 @@ class Session:
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
 
+    def destroy_degree_plan(self, plan_id: int) -> None:
+        self.post_form(
+            f"/degree_plans/{plan_id}",
+            {
+                "authenticity_token": self.get_auth_token(),
+                "_method": "delete",
+            },
+        )
+
 
 if __name__ == "__main__":
     import os
@@ -250,6 +281,6 @@ if __name__ == "__main__":
     ca_session = os.getenv("CA_SESSION")
     if ca_session is None:
         raise EnvironmentError("No CA_SESSION environment variable")
-    session = Session(ca_session, None)
+    session = Session(ca_session)
 
-    print(session.get_auth_token())
+    session.destroy_degree_plan(11222)
