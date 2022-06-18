@@ -131,14 +131,6 @@ class Session:
         the session or form's authenticity token are invalid.
         """
         if all(type(value) is str for value in form.values()):
-            print(
-                urlencode(
-                    {
-                        name: value if type(value) is str else ""
-                        for name, value in form.items()
-                    }
-                )
-            )
             request = self.request(
                 path,
                 {"Content-Type": "application/x-www-form-urlencoded"},
@@ -263,6 +255,15 @@ class Session:
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
 
+    def destroy_curriculum(self, curriculum_id: int) -> None:
+        self.post_form(
+            f"/curriculums/{curriculum_id}",
+            {
+                "authenticity_token": self.get_auth_token(),
+                "_method": "delete",
+            },
+        )
+
     def destroy_degree_plan(self, plan_id: int) -> None:
         self.post_form(
             f"/degree_plans/{plan_id}",
@@ -283,4 +284,4 @@ if __name__ == "__main__":
         raise EnvironmentError("No CA_SESSION environment variable")
     session = Session(ca_session)
 
-    session.destroy_degree_plan(11222)
+    session.destroy_curriculum(19687)
