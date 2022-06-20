@@ -6,6 +6,8 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
+from output_json import Curriculum, CurriculumJson, DegreePlan, DegreePlanJson
+
 
 class UrlOpenReturn(HTTPResponse):
     """
@@ -55,6 +57,7 @@ class CurriculumEntry(NamedTuple):
 
 class Session:
     session: str
+    # Same as CSRF token, as it turns out
     authenticity_token: Optional[str]
 
     def __init__(self, session: str, authenticity_token: Optional[str] = None) -> None:
@@ -255,6 +258,28 @@ class Session:
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
 
+    def edit_curriculum(self, curriculum_id: int, curriculum: Curriculum) -> None:
+        with self.request(
+            f"/curriculums/viz_update/{curriculum_id}",
+            {"Content-Type": "application/json", "X-CSRF-Token": self.get_auth_token()},
+            json.dumps(CurriculumJson(curriculum=curriculum)).encode("utf-8"),
+            "PATCH",
+        ):
+            pass
+
+    def edit_degree_plan(self, plan_id: int, curriculum: Curriculum) -> None:
+        with self.request(
+            f"/degree_plans/viz_update/{plan_id}",
+            {"Content-Type": "application/json", "X-CSRF-Token": self.get_auth_token()},
+            json.dumps(
+                DegreePlanJson(
+                    curriculum=curriculum, degree_plan=DegreePlan(id=plan_id)
+                )
+            ).encode("utf-8"),
+            "PATCH",
+        ):
+            pass
+
     def destroy_curriculum(self, curriculum_id: int) -> None:
         self.post_form(
             f"/curriculums/{curriculum_id}",
@@ -277,6 +302,7 @@ class Session:
 if __name__ == "__main__":
     import os
     from dotenv import load_dotenv  # type: ignore
+    from output import MajorOutput
 
     load_dotenv()
     ca_session = os.getenv("CA_SESSION")
@@ -284,4 +310,4 @@ if __name__ == "__main__":
         raise EnvironmentError("No CA_SESSION environment variable")
     session = Session(ca_session)
 
-    session.destroy_curriculum(19687)
+    session.edit_curriculum(19750, MajorOutput("DS25").output_json())

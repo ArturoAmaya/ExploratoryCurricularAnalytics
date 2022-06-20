@@ -351,7 +351,7 @@ class MajorOutput:
                     str(term + 1),
                 ]
 
-    def output_plan_json(self, college: Optional[str] = None) -> Curriculum:
+    def output_json(self, college: Optional[str] = None) -> Curriculum:
         curriculum = Curriculum(
             curriculum_terms=[
                 Term(id=i + 1, curriculum_items=[]) for i in range(12 if college else 1)
