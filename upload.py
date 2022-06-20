@@ -63,8 +63,7 @@ def upload_major(
         organization_id,
         f"{major_code}-{departments[major.department]}",
         year,
-        f"{initials}-Curriculum Plan-{major_code}.csv",
-        output.output(),
+        (f"{initials}-Curriculum Plan-{major_code}.csv", output.output()),
     )
     if log:
         print(f"[{major_code}] Curriculum uploaded")
@@ -79,8 +78,41 @@ def upload_major(
         session.upload_degree_plan(
             curriculum_id,
             f"{major_code}/{college_name}",
-            f"SY-Degree Plan-{college_name}-{major_code}.csv",
-            output.output(college_code),
+            (
+                f"SY-Degree Plan-{college_name}-{major_code}.csv",
+                output.output(college_code),
+            ),
+        )
+        if log:
+            print(f"[{major_code}] {college_name} degree plan uploaded")
+
+
+def upload_major_json(
+    major: MajorInfo, organization_id: int, year: int, initials: str, log: bool = False
+) -> None:
+    major_code = major.isis_code
+    output = MajorOutput(major_code)
+    session.upload_curriculum(
+        organization_id,
+        f"{major_code}-{departments[major.department]}",
+        year,
+        output.output_json(),
+        major.cip_code,
+    )
+    if log:
+        print(f"[{major_code}] Curriculum uploaded")
+    curriculum_id = session.get_curricula(4, direction="desc")[0].curriculum_id()
+    if log:
+        print(
+            f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
+        )
+    for college_code, college_name in college_names.items():
+        if college_code not in output.plans.plans:
+            continue
+        session.upload_degree_plan(
+            curriculum_id,
+            f"{major_code}/{college_name}",
+            output.output_json(college_code),
         )
         if log:
             print(f"[{major_code}] {college_name} degree plan uploaded")
@@ -116,4 +148,4 @@ if __name__ == "__main__":
     initials: Optional[str] = args.initials
     if initials is None:
         initials = get_env("INITIALS")
-    upload_major(major_codes[major_code], org_id, year, initials, log=True)
+    upload_major_json(major_codes[major_code], org_id, year, initials, log=True)

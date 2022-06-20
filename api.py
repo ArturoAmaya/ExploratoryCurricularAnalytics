@@ -8,6 +8,9 @@ from urllib.request import Request, urlopen
 
 from output_json import Curriculum, CurriculumJson, DegreePlan, DegreePlanJson
 
+CsvFile = Tuple[str, str]
+FormData = Dict[str, Union[str, Tuple[str, bytes]]]
+
 
 class UrlOpenReturn(HTTPResponse):
     """
@@ -118,7 +121,7 @@ class Session:
     def post_form(
         self,
         path: str,
-        form: Dict[str, Union[str, Tuple[str, bytes]]],
+        form: FormData,
     ) -> None:
         """
         Submits an HTML form on Curricular Analytics with a POST request. The
@@ -175,11 +178,30 @@ class Session:
                 )
 
     def upload_curriculum(
-        self, organization_id: int, name: str, year: int, file_name: str, csv: str
+        self,
+        organization_id: int,
+        name: str,
+        year: int,
+        data: Union[CsvFile, Curriculum],
+        cip_code: str = "",
     ) -> None:
         """
         Creates a new curriculum under the given organization.
         """
+        form: FormData
+        if isinstance(data, tuple):
+            file_name, csv = data
+            form = {
+                "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
+                "entry_method": "csv_file",
+                "curriculum_json": "",
+            }
+        else:
+            form = {
+                "curriculum[curriculum_file]": ("", b""),
+                "entry_method": "gui",
+                "curriculum_json": json.dumps(data),
+            }
         self.post_form(
             "/curriculums",
             {
@@ -187,29 +209,39 @@ class Session:
                 "curriculum[name]": name,
                 "curriculum[organization_id]": str(organization_id),
                 "curriculum[catalog_year]": str(year),
-                "curriculum[cip]": "",  # Curricular Analytics will get it from the CSV
-                "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
-                "entry_method": "csv_file",
-                "curriculum_json": "",
+                "curriculum[cip]": cip_code,  # Curricular Analytics will get it from the CSV
+                **form,
                 "commit": "Save",
             },
         )
 
     def upload_degree_plan(
-        self, curriculum_id: int, name: str, file_name: str, csv: str
+        self, curriculum_id: int, name: str, data: Union[CsvFile, Curriculum]
     ) -> None:
         """
         Creates a new degree plan under the given curriculum.
         """
+        form: FormData
+        if isinstance(data, tuple):
+            file_name, csv = data
+            form = {
+                "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
+                "entry_method": "csv_file",
+                "curriculum_json": "",
+            }
+        else:
+            form = {
+                "curriculum[curriculum_file]": ("", b""),
+                "entry_method": "gui",
+                "curriculum_json": json.dumps(data),
+            }
         self.post_form(
             "/degree_plans",
             {
                 "authenticity_token": self.get_auth_token(),
                 "degree_plan[name]": name,
                 "degree_plan[curriculum_id]": str(curriculum_id),
-                "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
-                "entry_method": "csv_file",
-                "curriculum_json": "",
+                **form,
                 "commit": "Save",
             },
         )
