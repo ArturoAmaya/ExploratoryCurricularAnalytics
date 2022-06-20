@@ -1,0 +1,56 @@
+Curriculum,Anthropology(Conc in Bio Anth),,,,,,,,,
+Degree Plan,Anthropology(Conc in Bio Anth)/ Warren,,,,,,,,,
+Institution,"University of California, San Diego",,,,,,,,,
+Degree Type,BA,,,,,,,,,
+System Type,Quarter,,,,,,,,,
+CIP,45.0299,,,,,,,,,
+Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+5,DEI,,,,,,4,,,6
+9,ANBI CORE 1,,,,,,4,,,7
+1,ANTH 101,ANTH,101,,,,4,,,7
+10,ANBI CORE 2,,,,,,4,,,8
+2,ANTH 102,ANTH,102,,,,4,,,8
+11,ANBI CORE 3,,,,,,4,,,9
+3,ANTH 103,ANTH,103,,,,4,,,9
+12,ANTH UD Elective 1,,,,,,4,,,10
+13,ANBI CORE 4,,,,,,4,,,10
+14,ANTH UD Elective 2,,,,,,4,,,11
+15,ANTH UD Elective 3,,,,,,4,,,11
+16,ANTH UD Elective 4,,,,,,4,,,12
+17,ANTH UD Elective 5,,,,,,4,,,12
+Additional Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+4,WCWP 10A,WCWP,10A,,,,4,,,1
+18,ELECTIVE 1,,,,,,4,,,1
+19,GE 1,,,,,,4,,,1
+20,GE 2,,,,,,4,,,1
+6,WCWP 10B,WCWP,10B,4,,,4,,,2
+21,ELECTIVE 2,,,,,,4,,,2
+22,ELECTIVE 3,,,,,,4,,,2
+23,GE 3,,,,,,4,,,2
+7,PHIL/POLI 27,POLI,27,4;6,,,4,,,3
+24,ELECTIVE 4,,,,,,4,,,3
+25,ELECTIVE 5,,,,,,4,,,3
+26,GE 4,,,,,,4,,,3
+8,PHIL/POLI 28,POLI,28,7,,,4,,,4
+27,ELECTIVE 6,,,,,,4,,,4
+28,ELECTIVE 7,,,,,,4,,,4
+29,GE 5,,,,,,4,,,4
+30,ELECTIVE 8,,,,,,4,,,5
+31,ELECTIVE 9,,,,,,4,,,5
+32,GE 6,,,,,,4,,,5
+33,GE 7,,,,,,4,,,5
+34,ELECTIVE 10,,,,,,4,,,6
+35,ELECTIVE 11,,,,,,4,,,6
+36,GE 8,,,,,,4,,,6
+37,ELECTIVE 12,,,,,,4,,,7
+38,GE 9,,,,,,4,,,7
+39,ELECTIVE 13,,,,,,4,,,8
+40,GE 10,,,,,,4,,,8
+41,ELECTIVE 14,,,,,,4,,,9
+42,GE 11,,,,,,4,,,9
+43,GE 12,,,,,,4,,,10
+44,GE 13,,,,,,4,,,11
+45,ELECTIVE 15,,,,,,4,,,12
+

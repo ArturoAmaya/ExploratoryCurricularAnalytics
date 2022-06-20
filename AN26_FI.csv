@@ -1,0 +1,55 @@
+Curriculum,Anthropology(Conc in Bio Anth),,,,,,,,,
+Degree Plan,Anthropology(Conc in Bio Anth)/ ERC,,,,,,,,,
+Institution,"University of California, San Diego",,,,,,,,,
+Degree Type,BA,,,,,,,,,
+System Type,Quarter,,,,,,,,,
+CIP,45.0299,,,,,,,,,
+Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+1,ANTH 101,ANTH,101,,,,4,,,7
+5,ANBI CORE 1,,,,,,4,,,7
+2,ANTH 102,ANTH,102,,,,4,,,8
+10,ANBI CORE 2,,,,,,4,,,8
+3,ANTH 103,ANTH,103,,,,4,,,9
+11,ANBI CORE 3,,,,,,4,,,9
+12,ANBI CORE 4,,,,,,4,,,10
+13,ANTH UD Elective 1,,,,,,4,,,10
+14,ANTH UD Elective 2,,,,,,4,,,11
+15,ANTH UD Elective 3,,,,,,4,,,11
+16,ANTH UD Elective 4,,,,,,4,,,12
+17,ANTH UD Elective 5,,,,,,4,,,12
+Additional Courses,,,,,,,,,,
+Course ID,Course Name,Prefix,Number,Prerequisites,Corequisites,Strict-Corequisites,Credit Hours,Institution,Canonical Name,Term
+4,MMW 11,MMW,11,,,,4,,,1
+18,GE 1,,,,,,4,,,1
+19,GE 2,,,,,,4,,,1
+6,MMW 12,MMW,12,,,,6,,,2
+20,GE 3,,,,,,4,,,2
+21,GE 4,,,,,,4,,,2
+7,MMW 13,MMW,13,6,,,6,,,3
+22,GE 5,,,,,,4,,,3
+23,GE 6,,,,,,4,,,3
+24,GE 7,,,,,,4,,,3
+8,MMW 14 1,MMW,14,6;7,,,4,,,4
+25,GE 8,,,,,,4,,,4
+26,DEI,,,,,,4,,,4
+27,Elective,,,,,,4,,,4
+28,MMW 14 2,MMW,14,6;7,,,4,,,5
+29,GE 9,,,,,,4,,,5
+30,ELECTIVE 1,,,,,,4,,,5
+31,ELECTIVE 2,,,,,,4,,,5
+9,MMW 15,MMW,15,6;7,,,4,,,6
+32,ELECTIVE 3,,,,,,4,,,6
+33,ELECTIVE 4,,,,,,4,,,6
+34,ELECTIVE 5,,,,,,4,,,6
+35,UD ELECTIVE,,,,,,4,,,7
+36,GE 10,,,,,,4,,,7
+37,ELECTIVE 6,,,,,,4,,,8
+38,ELECTIVE 7,,,,,,4,,,8
+39,ELECTIVE 8,,,,,,4,,,9
+40,ELECTIVE 9,,,,,,4,,,9
+41,ELECTIVE 10,,,,,,4,,,10
+42,ELECTIVE 11,,,,,,4,,,10
+43,ELECTIVE 12,,,,,,4,,,11
+44,ELECTIVE 13,,,,,,4,,,12
+
