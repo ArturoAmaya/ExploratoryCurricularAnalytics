@@ -1,0 +1,452 @@
+There\'s no DEI in ./files/curricula/AN26//AN26_TH.csv
+UHOH in ./files/curricula/AN26//AN26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/AN27//AN27_TH.csv
+UHOH in ./files/curricula/AN27//AN27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/AN28//AN28_TH.csv
+UHOH in ./files/curricula/AN28//AN28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/AN29//AN29_TH.csv
+UHOH in ./files/curricula/AN29//AN29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/AN30//AN30_TH.csv
+UHOH in ./files/curricula/AN30//AN30_WA.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/BE25//BE25_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BE25//BE25_RE.csv
+There\'s no DEI in ./files/curricula/BE25//BE25_TH.csv
+UHOH in ./files/curricula/BE25//BE25_WA.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/BE27//BE27_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BE27//BE27_RE.csv
+There\'s no DEI in ./files/curricula/BE27//BE27_TH.csv
+UHOH in ./files/curricula/BE27//BE27_WA.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/BE28//BE28_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BE28//BE28_RE.csv
+There\'s no DEI in ./files/curricula/BE28//BE28_TH.csv
+UHOH in ./files/curricula/BE29//BE29_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BE29//BE29_RE.csv
+There\'s no DEI in ./files/curricula/BE29//BE29_TH.csv
+UHOH in ./files/curricula/BE29//BE29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI30//BI30_RE.csv
+There\'s no DEI in ./files/curricula/BI30//BI30_TH.csv
+UHOH in ./files/curricula/BI30//BI30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI31//BI31_RE.csv
+There\'s no DEI in ./files/curricula/BI31//BI31_TH.csv
+UHOH in ./files/curricula/BI31//BI31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI32//BI32_RE.csv
+There\'s no DEI in ./files/curricula/BI32//BI32_TH.csv
+UHOH in ./files/curricula/BI32//BI32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI34//BI34_RE.csv
+There\'s no DEI in ./files/curricula/BI34//BI34_TH.csv
+UHOH in ./files/curricula/BI34//BI34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI35//BI35_RE.csv
+There\'s no DEI in ./files/curricula/BI35//BI35_TH.csv
+UHOH in ./files/curricula/BI35//BI35_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI37//BI37_FI.csv
+There\'s no DEI in ./files/curricula/BI37//BI37_RE.csv
+There\'s no DEI in ./files/curricula/BI37//BI37_TH.csv
+UHOH in ./files/curricula/BI37//BI37_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/BI38//BI38_RE.csv
+There\'s no DEI in ./files/curricula/BI38//BI38_TH.csv
+UHOH in ./files/curricula/BI38//BI38_WA.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/CE25//CE25_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CE25//CE25_RE.csv
+There\'s no DEI in ./files/curricula/CE25//CE25_TH.csv
+UHOH in ./files/curricula/CE25//CE25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG25//CG25_TH.csv
+UHOH in ./files/curricula/CG25//CG25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG29//CG29_TH.csv
+UHOH in ./files/curricula/CG29//CG29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG31//CG31_TH.csv
+UHOH in ./files/curricula/CG31//CG31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG32//CG32_RE.csv
+There\'s no DEI in ./files/curricula/CG32//CG32_TH.csv
+UHOH in ./files/curricula/CG32//CG32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG33//CG33_TH.csv
+UHOH in ./files/curricula/CG33//CG33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG34//CG34_TH.csv
+UHOH in ./files/curricula/CG34//CG34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CG35//CG35_TH.csv
+UHOH in ./files/curricula/CG35//CG35_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH25//CH25_FI.csv
+There\'s no DEI in ./files/curricula/CH25//CH25_RE.csv
+There\'s no DEI in ./files/curricula/CH25//CH25_TH.csv
+UHOH in ./files/curricula/CH25//CH25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH34//CH34_RE.csv
+There\'s no DEI in ./files/curricula/CH34//CH34_TH.csv
+UHOH in ./files/curricula/CH34//CH34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH35//CH35_RE.csv
+There\'s no DEI in ./files/curricula/CH35//CH35_TH.csv
+UHOH in ./files/curricula/CH35//CH35_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH36//CH36_RE.csv
+There\'s no DEI in ./files/curricula/CH36//CH36_TH.csv
+UHOH in ./files/curricula/CH36//CH36_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH38//CH38_RE.csv
+UHOH in ./files/curricula/CH38//CH38_SN.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CH38//CH38_TH.csv
+UHOH in ./files/curricula/CH38//CH38_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CL25//CL25_RE.csv
+There\'s no DEI in ./files/curricula/CL25//CL25_TH.csv
+UHOH in ./files/curricula/CL25//CL25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CM26//CM26_FI.csv
+There\'s no DEI in ./files/curricula/CM26//CM26_RE.csv
+There\'s no DEI in ./files/curricula/CM26//CM26_SI.csv
+There\'s no DEI in ./files/curricula/CM26//CM26_SN.csv
+There\'s no DEI in ./files/curricula/CM26//CM26_TH.csv
+UHOH in ./files/curricula/CM26//CM26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CN25//CN25_RE.csv
+There\'s no DEI in ./files/curricula/CN25//CN25_TH.csv
+UHOH in ./files/curricula/CN25//CN25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CR25//CR25_MU.csv
+There\'s no DEI in ./files/curricula/CR25//CR25_RE.csv
+There\'s no DEI in ./files/curricula/CR25//CR25_SI.csv
+There\'s no DEI in ./files/curricula/CR25//CR25_SN.csv
+There\'s no DEI in ./files/curricula/CR25//CR25_TH.csv
+UHOH in ./files/curricula/CR25//CR25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CS25//CS25_RE.csv
+There\'s no DEI in ./files/curricula/CS25//CS25_TH.csv
+UHOH in ./files/curricula/CS25//CS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CS26//CS26_RE.csv
+There\'s no DEI in ./files/curricula/CS26//CS26_TH.csv
+UHOH in ./files/curricula/CS26//CS26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/CS27//CS27_RE.csv
+There\'s no DEI in ./files/curricula/CS27//CS27_TH.csv
+UHOH in ./files/curricula/CS27//CS27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/DS25//DS25_RE.csv
+There\'s no DEI in ./files/curricula/DS25//DS25_TH.csv
+UHOH in ./files/curricula/DS25//DS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EC26//EC26_RE.csv
+There\'s no DEI in ./files/curricula/EC26//EC26_TH.csv
+UHOH in ./files/curricula/EC26//EC26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EC27//EC27_RE.csv
+There\'s no DEI in ./files/curricula/EC27//EC27_TH.csv
+UHOH in ./files/curricula/EC27//EC27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EC28//EC28_RE.csv
+There\'s no DEI in ./files/curricula/EC28//EC28_TH.csv
+UHOH in ./files/curricula/EC28//EC28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EC37//EC37_RE.csv
+There\'s no DEI in ./files/curricula/EC37//EC37_TH.csv
+UHOH in ./files/curricula/EC37//EC37_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ED25//ED25_RE.csv
+There\'s no DEI in ./files/curricula/ED25//ED25_SN.csv
+There\'s no DEI in ./files/curricula/ED25//ED25_TH.csv
+UHOH in ./files/curricula/ED25//ED25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EN25//EN25_TH.csv
+UHOH in ./files/curricula/EN25//EN25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EN26//EN26_TH.csv
+UHOH in ./files/curricula/EN26//EN26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EN28//EN28_TH.csv
+UHOH in ./files/curricula/EN28//EN28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/EN30//EN30_MU.csv
+There\'s no DEI in ./files/curricula/EN30//EN30_TH.csv
+UHOH in ./files/curricula/EN30//EN30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ES25//ES25_MU.csv
+There\'s no DEI in ./files/curricula/ES25//ES25_TH.csv
+UHOH in ./files/curricula/ES25//ES25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ES26//ES26_TH.csv
+UHOH in ./files/curricula/ES26//ES26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ES27//ES27_TH.csv
+UHOH in ./files/curricula/ES27//ES27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ES28//ES28_TH.csv
+UHOH in ./files/curricula/ES28//ES28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/ET25//ET25_FI.csv
+There\'s no DEI in ./files/curricula/ET25//ET25_RE.csv
+There\'s no DEI in ./files/curricula/ET25//ET25_SI.csv
+There\'s no DEI in ./files/curricula/ET25//ET25_SN.csv
+There\'s no DEI in ./files/curricula/ET25//ET25_TH.csv
+UHOH in ./files/curricula/ET25//ET25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/GH25//GH25_RE.csv
+There\'s no DEI in ./files/curricula/GH25//GH25_TH.csv
+UHOH in ./files/curricula/GH25//GH25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/GH26//GH26_RE.csv
+There\'s no DEI in ./files/curricula/GH26//GH26_TH.csv
+UHOH in ./files/curricula/GH26//GH26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/GL25//GL25_RE.csv
+There\'s no DEI in ./files/curricula/GL25//GL25_TH.csv
+UHOH in ./files/curricula/GL25//GL25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/GS25//GS25_RE.csv
+There\'s no DEI in ./files/curricula/GS25//GS25_TH.csv
+UHOH in ./files/curricula/GS25//GS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/HI25//HI25_RE.csv
+There\'s no DEI in ./files/curricula/HI25//HI25_TH.csv
+UHOH in ./files/curricula/HI25//HI25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/HS25//HS25_RE.csv
+There\'s no DEI in ./files/curricula/HS25//HS25_TH.csv
+There\'s no DEI in ./files/curricula/HS26//HS26_RE.csv
+There\'s no DEI in ./files/curricula/HS26//HS26_TH.csv
+UHOH in ./files/curricula/HS26//HS26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/HS27//HS27_RE.csv
+There\'s no DEI in ./files/curricula/HS27//HS27_TH.csv
+UHOH in ./files/curricula/HS27//HS27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/HS28//HS28_RE.csv
+There\'s no DEI in ./files/curricula/HS28//HS28_TH.csv
+UHOH in ./files/curricula/HS28//HS28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS25//IS25_RE.csv
+There\'s no DEI in ./files/curricula/IS25//IS25_TH.csv
+UHOH in ./files/curricula/IS25//IS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS26//IS26_TH.csv
+UHOH in ./files/curricula/IS26//IS26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS27//IS27_RE.csv
+There\'s no DEI in ./files/curricula/IS27//IS27_TH.csv
+UHOH in ./files/curricula/IS27//IS27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS28//IS28_TH.csv
+UHOH in ./files/curricula/IS28//IS28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS29//IS29_TH.csv
+UHOH in ./files/curricula/IS29//IS29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS30//IS30_TH.csv
+UHOH in ./files/curricula/IS30//IS30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS31//IS31_TH.csv
+UHOH in ./files/curricula/IS31//IS31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS34//IS34_TH.csv
+UHOH in ./files/curricula/IS34//IS34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IS36//IS36_RE.csv
+There\'s no DEI in ./files/curricula/IS36//IS36_TH.csv
+UHOH in ./files/curricula/IS36//IS36_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/IT25//IT25_RE.csv
+There\'s no DEI in ./files/curricula/IT25//IT25_TH.csv
+UHOH in ./files/curricula/IT25//IT25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/JA25//JA25_RE.csv
+There\'s no DEI in ./files/curricula/JA25//JA25_TH.csv
+UHOH in ./files/curricula/JA25//JA25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/JS25//JS25_RE.csv
+There\'s no DEI in ./files/curricula/JS25//JS25_TH.csv
+UHOH in ./files/curricula/JS25//JS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LA25//LA25_RE.csv
+There\'s no DEI in ./files/curricula/LA25//LA25_TH.csv
+UHOH in ./files/curricula/LA25//LA25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LA26//LA26_RE.csv
+There\'s no DEI in ./files/curricula/LA26//LA26_TH.csv
+UHOH in ./files/curricula/LA26//LA26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LA27//LA27_RE.csv
+There\'s no DEI in ./files/curricula/LA27//LA27_TH.csv
+UHOH in ./files/curricula/LA27//LA27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LN25//LN25_RE.csv
+There\'s no DEI in ./files/curricula/LN25//LN25_TH.csv
+UHOH in ./files/curricula/LN25//LN25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LN29//LN29_RE.csv
+There\'s no DEI in ./files/curricula/LN29//LN29_TH.csv
+UHOH in ./files/curricula/LN29//LN29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LN32//LN32_RE.csv
+There\'s no DEI in ./files/curricula/LN32//LN32_TH.csv
+UHOH in ./files/curricula/LN32//LN32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LN33//LN33_RE.csv
+There\'s no DEI in ./files/curricula/LN33//LN33_TH.csv
+UHOH in ./files/curricula/LN33//LN33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LN34//LN34_RE.csv
+There\'s no DEI in ./files/curricula/LN34//LN34_TH.csv
+UHOH in ./files/curricula/LN34//LN34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LT33//LT33_TH.csv
+UHOH in ./files/curricula/LT33//LT33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LT34//LT34_TH.csv
+UHOH in ./files/curricula/LT34//LT34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LT36//LT36_TH.csv
+UHOH in ./files/curricula/LT36//LT36_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/LT41//LT41_TH.csv
+UHOH in ./files/curricula/LT41//LT41_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA27//MA27_TH.csv
+UHOH in ./files/curricula/MA27//MA27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA29//MA29_TH.csv
+UHOH in ./files/curricula/MA29//MA29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA30//MA30_TH.csv
+There\'s no DEI in ./files/curricula/MA31//MA31_TH.csv
+UHOH in ./files/curricula/MA31//MA31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA32//MA32_TH.csv
+UHOH in ./files/curricula/MA32//MA32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA33//MA33_TH.csv
+UHOH in ./files/curricula/MA33//MA33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA34//MA34_TH.csv
+UHOH in ./files/curricula/MA34//MA34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MA35//MA35_TH.csv
+UHOH in ./files/curricula/MA35//MA35_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MC25//MC25_TH.csv
+There\'s no DEI in ./files/curricula/MC27//MC27_TH.csv
+UHOH in ./files/curricula/MC27//MC27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MU25//MU25_TH.csv
+UHOH in ./files/curricula/MU25//MU25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MU26//MU26_TH.csv
+UHOH in ./files/curricula/MU26//MU26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/MU27//MU27_RE.csv
+There\'s no DEI in ./files/curricula/MU27//MU27_TH.csv
+UHOH in ./files/curricula/MU27//MU27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/NA25//NA25_TH.csv
+There\'s no DEI in ./files/curricula/PB25//PB25_TH.csv
+UHOH in ./files/curricula/PB25//PB25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB26//PB26_TH.csv
+UHOH in ./files/curricula/PB26//PB26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB27//PB27_TH.csv
+UHOH in ./files/curricula/PB27//PB27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB28//PB28_TH.csv
+UHOH in ./files/curricula/PB28//PB28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB29//PB29_TH.csv
+UHOH in ./files/curricula/PB29//PB29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB30//PB30_TH.csv
+UHOH in ./files/curricula/PB30//PB30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PB31//PB31_TH.csv
+UHOH in ./files/curricula/PB31//PB31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC25//PC25_TH.csv
+UHOH in ./files/curricula/PC25//PC25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC26//PC26_TH.csv
+UHOH in ./files/curricula/PC26//PC26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC28//PC28_TH.csv
+UHOH in ./files/curricula/PC28//PC28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC29//PC29_TH.csv
+UHOH in ./files/curricula/PC29//PC29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC30//PC30_TH.csv
+UHOH in ./files/curricula/PC30//PC30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC31//PC31_TH.csv
+UHOH in ./files/curricula/PC31//PC31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC32//PC32_TH.csv
+UHOH in ./files/curricula/PC32//PC32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC33//PC33_TH.csv
+UHOH in ./files/curricula/PC33//PC33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC34//PC34_TH.csv
+UHOH in ./files/curricula/PC34//PC34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PC35//PC35_FI.csv
+There\'s no DEI in ./files/curricula/PC35//PC35_RE.csv
+There\'s no DEI in ./files/curricula/PC35//PC35_SI.csv
+There\'s no DEI in ./files/curricula/PC35//PC35_SN.csv
+There\'s no DEI in ./files/curricula/PC35//PC35_TH.csv
+UHOH in ./files/curricula/PC35//PC35_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PL25//PL25_TH.csv
+UHOH in ./files/curricula/PL25//PL25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS25//PS25_TH.csv
+UHOH in ./files/curricula/PS25//PS25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS26//PS26_TH.csv
+UHOH in ./files/curricula/PS26//PS26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS27//PS27_TH.csv
+UHOH in ./files/curricula/PS27//PS27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS28//PS28_TH.csv
+UHOH in ./files/curricula/PS28//PS28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS29//PS29_TH.csv
+UHOH in ./files/curricula/PS29//PS29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS30//PS30_TH.csv
+UHOH in ./files/curricula/PS30//PS30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS31//PS31_TH.csv
+UHOH in ./files/curricula/PS31//PS31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS32//PS32_TH.csv
+UHOH in ./files/curricula/PS32//PS32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS33//PS33_MU.csv
+There\'s no DEI in ./files/curricula/PS33//PS33_SI.csv
+There\'s no DEI in ./files/curricula/PS33//PS33_TH.csv
+UHOH in ./files/curricula/PS33//PS33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PS34//PS34_TH.csv
+UHOH in ./files/curricula/PS34//PS34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PY26//PY26_RE.csv
+There\'s no DEI in ./files/curricula/PY26//PY26_TH.csv
+There\'s no DEI in ./files/curricula/PY28//PY28_RE.csv
+There\'s no DEI in ./files/curricula/PY28//PY28_TH.csv
+UHOH in ./files/curricula/PY28//PY28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PY29//PY29_RE.csv
+There\'s no DEI in ./files/curricula/PY29//PY29_TH.csv
+There\'s no DEI in ./files/curricula/PY30//PY30_FI.csv
+There\'s no DEI in ./files/curricula/PY30//PY30_TH.csv
+UHOH in ./files/curricula/PY30//PY30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/PY31//PY31_TH.csv
+There\'s no DEI in ./files/curricula/PY32//PY32_RE.csv
+There\'s no DEI in ./files/curricula/PY32//PY32_TH.csv
+There\'s no DEI in ./files/curricula/PY33//PY33_RE.csv
+There\'s no DEI in ./files/curricula/PY33//PY33_TH.csv
+There\'s no DEI in ./files/curricula/PY34//PY34_RE.csv
+There\'s no DEI in ./files/curricula/PY34//PY34_TH.csv
+UHOH in ./files/curricula/PY34//PY34_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/RE26//RE26_RE.csv
+There\'s no DEI in ./files/curricula/RE26//RE26_TH.csv
+UHOH in ./files/curricula/RE26//RE26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/RU26//RU26_RE.csv
+There\'s no DEI in ./files/curricula/RU26//RU26_TH.csv
+UHOH in ./files/curricula/RU26//RU26_WA.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/SE27//SE27_MU.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SE27//SE27_RE.csv
+UHOH in ./files/curricula/SE27//SE27_SI.csv, the DEI is in the major courses list
+UHOH in ./files/curricula/SE27//SE27_SN.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SE27//SE27_TH.csv
+UHOH in ./files/curricula/SE27//SE27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SI29//SI29_TH.csv
+UHOH in ./files/curricula/SI29//SI29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SI30//SI30_RE.csv
+There\'s no DEI in ./files/curricula/SI30//SI30_TH.csv
+UHOH in ./files/curricula/SI30//SI30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO25//SO25_RE.csv
+There\'s no DEI in ./files/curricula/SO25//SO25_SI.csv
+There\'s no DEI in ./files/curricula/SO25//SO25_SN.csv
+There\'s no DEI in ./files/curricula/SO25//SO25_TH.csv
+UHOH in ./files/curricula/SO25//SO25_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO27//SO27_RE.csv
+There\'s no DEI in ./files/curricula/SO27//SO27_SI.csv
+There\'s no DEI in ./files/curricula/SO27//SO27_SN.csv
+There\'s no DEI in ./files/curricula/SO27//SO27_TH.csv
+UHOH in ./files/curricula/SO27//SO27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO28//SO28_RE.csv
+There\'s no DEI in ./files/curricula/SO28//SO28_SI.csv
+There\'s no DEI in ./files/curricula/SO28//SO28_SN.csv
+There\'s no DEI in ./files/curricula/SO28//SO28_TH.csv
+UHOH in ./files/curricula/SO28//SO28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO29//SO29_RE.csv
+There\'s no DEI in ./files/curricula/SO29//SO29_SI.csv
+There\'s no DEI in ./files/curricula/SO29//SO29_SN.csv
+There\'s no DEI in ./files/curricula/SO29//SO29_TH.csv
+UHOH in ./files/curricula/SO29//SO29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO30//SO30_RE.csv
+There\'s no DEI in ./files/curricula/SO30//SO30_SI.csv
+There\'s no DEI in ./files/curricula/SO30//SO30_SN.csv
+There\'s no DEI in ./files/curricula/SO30//SO30_TH.csv
+UHOH in ./files/curricula/SO30//SO30_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO31//SO31_RE.csv
+There\'s no DEI in ./files/curricula/SO31//SO31_SI.csv
+There\'s no DEI in ./files/curricula/SO31//SO31_SN.csv
+There\'s no DEI in ./files/curricula/SO31//SO31_TH.csv
+UHOH in ./files/curricula/SO31//SO31_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO32//SO32_RE.csv
+There\'s no DEI in ./files/curricula/SO32//SO32_SI.csv
+There\'s no DEI in ./files/curricula/SO32//SO32_SN.csv
+There\'s no DEI in ./files/curricula/SO32//SO32_TH.csv
+UHOH in ./files/curricula/SO32//SO32_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/SO33//SO33_RE.csv
+There\'s no DEI in ./files/curricula/SO33//SO33_SI.csv
+There\'s no DEI in ./files/curricula/SO33//SO33_SN.csv
+There\'s no DEI in ./files/curricula/SO33//SO33_TH.csv
+UHOH in ./files/curricula/SO33//SO33_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/TH26//TH26_TH.csv
+UHOH in ./files/curricula/TH26//TH26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/TH27//TH27_RE.csv
+There\'s no DEI in ./files/curricula/TH27//TH27_TH.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_FI.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_MU.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_SI.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_SN.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_TH.csv
+There\'s no DEI in ./files/curricula/UN27//UN27_WA.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_FI.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_MU.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_SI.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_SN.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_TH.csv
+There\'s no DEI in ./files/curricula/UNHA//UNHA_WA.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_FI.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_MU.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_SI.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_SN.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_TH.csv
+There\'s no DEI in ./files/curricula/UNPS//UNPS_WA.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_FI.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_MU.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_SI.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_SN.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_TH.csv
+There\'s no DEI in ./files/curricula/UNSS//UNSS_WA.csv
+There\'s no DEI in ./files/curricula/US26//US26_FI.csv
+There\'s no DEI in ./files/curricula/US26//US26_SI.csv
+There\'s no DEI in ./files/curricula/US26//US26_SN.csv
+There\'s no DEI in ./files/curricula/US26//US26_TH.csv
+UHOH in ./files/curricula/US26//US26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/US27//US27_MU.csv
+UHOH in ./files/curricula/US27//US27_SI.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/US27//US27_SN.csv
+There\'s no DEI in ./files/curricula/US27//US27_TH.csv
+UHOH in ./files/curricula/US27//US27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/VA26//VA26_TH.csv
+UHOH in ./files/curricula/VA26//VA26_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/VA27//VA27_TH.csv
+UHOH in ./files/curricula/VA27//VA27_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/VA28//VA28_TH.csv
+UHOH in ./files/curricula/VA28//VA28_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/VA29//VA29_TH.csv
+UHOH in ./files/curricula/VA29//VA29_WA.csv, the DEI is in the major courses list
+There\'s no DEI in ./files/curricula/VA30//VA30_TH.csv
+UHOH in ./files/curricula/VA30//VA30_WA.csv, the DEI is in the major courses list
