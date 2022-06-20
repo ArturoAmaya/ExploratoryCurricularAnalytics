@@ -9,9 +9,9 @@ from urllib.request import Request, urlopen
 
 class UrlOpenReturn(HTTPResponse):
     """
-    HACK: Mimic urllib.request.urlopen's return value. Their docs say they
-    return a `HTTPResponse`, but that doesn't have a `url` attribute, and I
-    don't know how to do intersections in Python typing.
+    HACK: Mimic urllib.request.urlopen's return type. Their docs say they return
+    a `HTTPResponse`, but that doesn't have a `url` attribute, and I don't know
+    how to do intersections in Python typing.
     """
 
     url: str
