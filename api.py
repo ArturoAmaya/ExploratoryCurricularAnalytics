@@ -194,11 +194,9 @@ class Session:
             form = {
                 "curriculum[curriculum_file]": (file_name, csv.encode("utf-8")),
                 "entry_method": "csv_file",
-                "curriculum_json": "",
             }
         else:
             form = {
-                "curriculum[curriculum_file]": ("", b""),
                 "entry_method": "gui",
                 "curriculum_json": json.dumps(data),
             }
@@ -211,7 +209,6 @@ class Session:
                 "curriculum[catalog_year]": str(year),
                 "curriculum[cip]": cip_code,  # Curricular Analytics will get it from the CSV
                 **form,
-                "commit": "Save",
             },
         )
 
@@ -227,11 +224,9 @@ class Session:
             form = {
                 "degree_plan[degree_plan_file]": (file_name, csv.encode("utf-8")),
                 "entry_method": "csv_file",
-                "curriculum_json": "",
             }
         else:
             form = {
-                "curriculum[curriculum_file]": ("", b""),
                 "entry_method": "gui",
                 "curriculum_json": json.dumps(data),
             }
@@ -242,7 +237,6 @@ class Session:
                 "degree_plan[name]": name,
                 "degree_plan[curriculum_id]": str(curriculum_id),
                 **form,
-                "commit": "Save",
             },
         )
 
