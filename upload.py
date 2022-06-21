@@ -88,8 +88,14 @@ def upload_major(
 
 
 def upload_major_json(
-    major: MajorInfo, organization_id: int, year: int, initials: str, log: bool = False
+    major: MajorInfo, organization_id: int, year: int, log: bool = False
 ) -> None:
+    """
+    Identical to `upload_major`, but significantly slower due to the server
+    seemingly taking longer to process it. No initials are required because they
+    are only used to sign file names, and uploading a JSON does not involve file
+    names.
+    """
     major_code = major.isis_code
     output = MajorOutput(major_code)
     session.upload_curriculum(
@@ -148,4 +154,4 @@ if __name__ == "__main__":
     initials: Optional[str] = args.initials
     if initials is None:
         initials = get_env("INITIALS")
-    upload_major_json(major_codes[major_code], org_id, year, initials, log=True)
+    upload_major(major_codes[major_code], org_id, year, initials, log=True)
