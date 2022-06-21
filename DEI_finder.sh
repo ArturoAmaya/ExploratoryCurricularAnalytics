@@ -12,6 +12,8 @@
 #    done
 #done
 echo "" > ./files/DEI_finder.txt
+echo "" > ./DEI_major.txt
+echo "" > ./DEI_missing.txt
 # Loop through the curricula folder, only stopping at folders
 for folder in ./files/curricula/*/ ; do
     echo -e "$folder" >> ./files/DEI_finder.txt
@@ -34,13 +36,13 @@ for folder in ./files/curricula/*/ ; do
         # Otherwise, only flag that there's no DEI if the file is not a curriculum.
         if [ ! "$var" = "" ]; then
             if ((var2 > var)); then
-                echo "UHOH in $file, the DEI is in the major courses list"
+                echo "UHOH in $file, the DEI is in the major courses list" >> DEI_major.txt
             fi
         else 
             # check if it's a curriculum
             temp=${file##*_}
             if [ ! "$temp" = "curriculum.csv" ]; then
-                echo -e "There\'s no DEI in $file"
+                echo -e "There's no DEI in $file" >> DEI_missing.txt
             fi
         fi
     done
