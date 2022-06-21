@@ -118,7 +118,7 @@ class OutputCourses:
         prereq_ids: List[int],
         coreq_ids: List[int],
         alternatives: List[Prerequisite],
-        before: Union[int, CourseCode],
+        before: Union[int, str],
     ) -> None:
         # Find first processed course whose code is in `alternatives`
         for course in self.processed_courses:
@@ -129,7 +129,7 @@ class OutputCourses:
                 if course.term >= before:
                     return
             else:
-                if course.code == before:
+                if course.course_title == before:
                     return
             for code, concurrent in alternatives:
                 if course.code == code:
@@ -159,7 +159,7 @@ class OutputCourses:
             if course_title in non_course_prereqs:
                 for prereq in non_course_prereqs[course_title]:
                     self.find_prereq(
-                        prereq_ids, coreq_ids, [Prerequisite(prereq, False)]
+                        prereq_ids, coreq_ids, [Prerequisite(prereq, False)],course_title
                     )
             elif code in prereqs and code != ("MATH", "18"):
                 for alternatives in prereqs[code]:
@@ -167,7 +167,7 @@ class OutputCourses:
                         prereq_ids,
                         coreq_ids,
                         alternatives,
-                        term if self.degree_plan else code,
+                        term if self.degree_plan else course_title,
                     )
 
             if course_title in self.duplicate_titles:
