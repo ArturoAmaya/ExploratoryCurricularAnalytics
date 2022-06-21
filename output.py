@@ -9,7 +9,7 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set, Union
 from college_names import college_names
 from output_json import Curriculum, Item, Term, Requisite
 
@@ -80,14 +80,17 @@ class OutputCourses:
     course_ids: Dict[CourseCode, int]
     duplicate_titles: Dict[str, int]
     claimed_ids: Set[CourseCode]
+    degree_plan: bool
 
     def __init__(
         self,
         processed_courses: List[ProcessedCourse],
         start_id: int,
         course_ids: Dict[CourseCode, int],
+        degree_plan: bool,
     ) -> None:
         self.processed_courses = processed_courses
+        self.degree_plan = degree_plan
 
         # 3. Assign course IDs
         self.current_id = start_id
@@ -109,16 +112,25 @@ class OutputCourses:
         # get used once
         self.claimed_ids = set(course_ids.keys())
 
-    # 4. Get prerequisites and output
+    # 4. Get prerequisites
     def find_prereq(
         self,
         prereq_ids: List[int],
         coreq_ids: List[int],
         alternatives: List[Prerequisite],
+        before: Union[int, CourseCode],
     ) -> None:
+        # Find first processed course whose code is in `alternatives`
         for course in self.processed_courses:
             if course.code is None:
                 continue
+            # Assumes processed courses are chronological
+            if isinstance(before, int):
+                if course.term >= before:
+                    return
+            else:
+                if course.code == before:
+                    return
             for code, concurrent in alternatives:
                 if course.code == code:
                     (coreq_ids if concurrent else prereq_ids).append(
@@ -127,13 +139,10 @@ class OutputCourses:
                     return
 
     def list_courses(
-        self, major_course_section: Optional[bool] = None
+        self, show_major: Optional[bool] = None
     ) -> Generator[OutputCourse, None, None]:
         for course_title, code, units, major_course, term in self.processed_courses:
-            if (
-                major_course_section is not None
-                and major_course != major_course_section
-            ):
+            if show_major is not None and major_course != show_major:
                 continue
 
             if code in self.claimed_ids:
@@ -154,7 +163,12 @@ class OutputCourses:
                     )
             elif code in prereqs and code != ("MATH", "18"):
                 for alternatives in prereqs[code]:
-                    self.find_prereq(prereq_ids, coreq_ids, alternatives)
+                    self.find_prereq(
+                        prereq_ids,
+                        coreq_ids,
+                        alternatives,
+                        term if self.degree_plan else code,
+                    )
 
             if course_title in self.duplicate_titles:
                 self.duplicate_titles[course_title] += 1
@@ -307,7 +321,9 @@ class MajorOutput:
             else:
                 processed_courses.append(input_course.process())
 
-        return OutputCourses(processed_courses, self.start_id, {**self.course_ids})
+        return OutputCourses(
+            processed_courses, self.start_id, {**self.course_ids}, bool(college)
+        )
 
     def output_plan(
         self, college: Optional[str] = None
