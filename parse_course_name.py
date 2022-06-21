@@ -9,14 +9,21 @@ Exports:
 """
 
 import re
-from typing import Literal, Optional, Tuple
+from typing import Dict, Literal, Optional, Tuple
 
 __all__ = ["parse_course_name", "clean_course_title"]
+
+ParsedCourseName = Optional[Tuple[str, str, Optional[Literal["L", "X"]]]]
+
+special_cases: Dict[str, ParsedCourseName] = {
+    # See #15
+    "UD Domain Elective 1 (if MATH 180A not taken)": None,
+}
 
 
 def parse_course_name(
     name: str,
-) -> Optional[Tuple[str, str, Optional[Literal["L", "X"]]]]:
+) -> ParsedCourseName:
     """
     Attempts to parse course name strings such as "MATH 10A/20A" into the course
     subject, which Curricular Analytics calls the prefix, and number.
@@ -34,6 +41,8 @@ def parse_course_name(
     # Based on
     # https://github.com/SheepTester-forks/ExploratoryCurricularAnalytics/blob/a9e6d0d7afb74f217b3efb382ed39cdd86fe0559/course_names.py#L13-L37
     name = name.strip("^* ")
+    if name in special_cases:
+        return special_cases[name]
     if name.startswith("ADV. CHEM"):
         return None
     name = re.sub(r"DF-?\d - ", "", name)
