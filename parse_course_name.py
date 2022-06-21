@@ -11,7 +11,7 @@ Exports:
 import re
 from typing import Literal, Optional, Tuple
 
-__all__ = ["parse_course_name"]
+__all__ = ["parse_course_name", "clean_course_title"]
 
 
 def parse_course_name(
@@ -46,3 +46,19 @@ def parse_course_name(
             return None
         return subject, number, has_lab if has_lab == "L" or has_lab == "X" else None
     return None
+
+
+def clean_course_title(title: str) -> str:
+    """
+    Cleans up the course title by removing asterisks and (see note)s.
+    """
+    title = title.strip("^* ¹")
+    match = re.match(r"(GE|DEI) */ *(GE|AWP|DEI)", title)
+    if match:
+        return "DEI" if match.group(1) == "DEI" or match.group(2) == "DEI" else "GE"
+    title = re.sub(r" */ *(GE|AWP|DEI)$", "", title, flags=re.I)
+    title = re.sub(
+        r" *\(\*?(see note|DEI APPROVED|DEI)\*?\)$|^1 ", "", title, flags=re.I
+    )
+    title = re.sub(r" +", " ", title)
+    return title

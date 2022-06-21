@@ -129,7 +129,7 @@ class PlannedCourse(NamedTuple):
     Represents a course in an academic plan.
     """
 
-    course_code: str
+    course_title: str
     units: float
     type: Literal["COLLEGE", "DEPARTMENT"]
     overlaps_ge: bool
@@ -144,6 +144,10 @@ class Plan(NamedTuple):
     quarters: List[List[PlannedCourse]]
 
 
+# College codes from least to most weird colleges (see #14)
+least_weird_colleges = ["TH", "WA", "SN", "MU", "FI", "RE", "SI"]
+
+
 class MajorPlans(NamedTuple):
     """
     Represents a major's set of academic plans. Contains plans for each college.
@@ -156,7 +160,7 @@ class MajorPlans(NamedTuple):
     major_code: str
     plans: Dict[str, Plan]
 
-    def curriculum(self, college: str = "TH") -> List[PlannedCourse]:
+    def curriculum(self, college: Optional[str] = None) -> List[PlannedCourse]:
         """
         Returns a list of courses based on the specified college's degree plan
         with college-specific courses removed. Can be used to create a
@@ -169,10 +173,17 @@ class MajorPlans(NamedTuple):
         The `overlaps_ge` attribute for these courses should be ignored (because
         there is no college whose GEs the course overlaps with).
 
-        The default college is intentionally set to Marshall (Third College)
-        because it appears to be a generally good college to base curricula off
-        of (see #14).
+        If no college is specified, it will try Marshall (Third College) by
+        default because it appears to be a generally good college to base
+        curricula off of (see #14). If there is no Marshall plan, it will try a
+        different college.
         """
+        if college is None:
+            for college_code in least_weird_colleges:
+                if college_code in self.plans:
+                    college = college_code
+            if college is None:
+                raise KeyError("Major has no college plans.")
         return [
             course
             for quarter in self.plans[college].quarters
@@ -191,9 +202,9 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         department,  # Department
         major_code,  # Major
         college_code,  # College
-        course_code,  # Course
+        course_title,  # Course
         units,  # Units
-        course_title,  # Course Type
+        course_type,  # Course Type
         overlap,  # GE/Major Overlap
         _,  # Start Year
         year,  # Year Taken
@@ -205,10 +216,10 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         if college_code not in majors[major_code].plans:
             majors[major_code].plans[college_code] = Plan([[] for _ in range(12)])
         quarter = (int(year) - 1) * 3 + int(quarter) - 1
-        if course_title != "COLLEGE" and course_title != "DEPARTMENT":
+        if course_type != "COLLEGE" and course_type != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
         majors[major_code].plans[college_code].quarters[quarter].append(
-            PlannedCourse(course_code, float(units), course_title, overlap == "Y")
+            PlannedCourse(course_title, float(units), course_type, overlap == "Y")
         )
     return majors
 
@@ -287,6 +298,4 @@ major_codes = major_rows_to_dict(
 )
 
 if __name__ == "__main__":
-    print(prereqs["CAT", "1"])
-    print(major_plans["CS26"].curriculum())
-    print(major_codes["CS26"])
+    print(major_plans.keys())
