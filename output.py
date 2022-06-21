@@ -9,7 +9,7 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set
+from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set, Union
 from college_names import college_names
 from output_json import Curriculum, Item, Term, Requisite
 
@@ -113,14 +113,19 @@ class OutputCourses:
         prereq_ids: List[int],
         coreq_ids: List[int],
         alternatives: List[Prerequisite],
-        before_term: Optional[int],
+        before: Union[int, CourseCode],
     ) -> None:
         # Find first processed course whose code is in `alternatives`
         for course in self.processed_courses:
             if course.code is None:
                 continue
-            if before_term is not None and course.term >= before_term:
-                continue
+            # Assumes processed courses are chronological
+            if isinstance(before, int):
+                if course.term >= before:
+                    return
+            else:
+                if course.code == before:
+                    return
             for code, concurrent in alternatives:
                 if course.code == code:
                     (coreq_ids if concurrent else prereq_ids).append(
@@ -152,7 +157,7 @@ class OutputCourses:
                         prereq_ids,
                         coreq_ids,
                         alternatives,
-                        term if self.degree_plan else None,
+                        term if self.degree_plan else code,
                     )
 
             if course_title in self.duplicate_titles:
