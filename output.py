@@ -26,6 +26,11 @@ from parse_course_name import clean_course_title, parse_course_name
 
 __all__ = ["MajorOutput"]
 
+non_course_prereqs: Dict[str, List[CourseCode]] = {
+    "SOCI- UD METHODOLOGY": [("SOCI", "60")],
+    "TDHD XXX": [("TDTR", "10")],
+}
+
 
 class ProcessedCourse(NamedTuple):
     course_title: str
@@ -151,7 +156,12 @@ class OutputCourses:
             coreq_ids: List[int] = []
             # Math 18 has no prereqs because it only requires pre-calc,
             # which we assume the student has credit for
-            if code in prereqs and code != ("MATH", "18"):
+            if course_title in non_course_prereqs:
+                for prereq in non_course_prereqs[course_title]:
+                    self.find_prereq(
+                        prereq_ids, coreq_ids, [Prerequisite(prereq, False)]
+                    )
+            elif code in prereqs and code != ("MATH", "18"):
                 for alternatives in prereqs[code]:
                     self.find_prereq(
                         prereq_ids,
