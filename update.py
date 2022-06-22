@@ -24,15 +24,18 @@ if __name__ == "__main__":
     college_code = sys.argv[3] if len(sys.argv) >= 4 else None
 
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
-        if sys.argv[1] == "edit" and college_code:
+        if mode == "edit" and college_code:
             plan_id = get_plan_id(session, curricula, major_code, college_code)
             session.edit_degree_plan(
                 plan_id, MajorOutput(major_code).output_json(college_code)
             )
             print(f"https://curricularanalytics.org/degree_plans/{plan_id}")
-        elif sys.argv[2] == "delete":
+        elif mode == "delete":
             if college_code:
                 plan_id = get_plan_id(session, curricula, major_code, college_code)
                 session.destroy_degree_plan(plan_id)
             else:
                 session.destroy_curriculum(curricula[major_code])
+                del curricula[major_code]
+        else:
+            raise ValueError(f"Unknown mode '{mode}'")
