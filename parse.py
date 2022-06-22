@@ -280,6 +280,9 @@ prereqs = prereq_rows_to_dict(
         strip=True,
     )[1:]
 )
+# Fix possible errors in prereqs
+prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
+prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
 
 major_plans = plan_rows_to_dict(
     read_csv_from(
@@ -298,4 +301,5 @@ major_codes = major_rows_to_dict(
 )
 
 if __name__ == "__main__":
-    print(major_plans.keys())
+    print(prereqs["NANO", "102"])
+    print(prereqs["DOC", "2"])

@@ -191,7 +191,6 @@ if __name__ == "__main__":
     if initials is None:
         initials = get_env("INITIALS")
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
-        print(curricula)
-        # curricula[major_code] = MajorUploader().upload_major(
-        #     major_codes[major_code], org_id, year, initials, log=True
-        # )
+        curricula[major_code] = MajorUploader().upload_major(
+            major_codes[major_code], org_id, year, initials, log=True
+        )
