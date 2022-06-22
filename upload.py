@@ -191,6 +191,8 @@ if __name__ == "__main__":
     if initials is None:
         initials = get_env("INITIALS")
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
+        if major_code in curricula:
+            raise KeyError(f"{major_code} already uploaded")
         curricula[major_code] = MajorUploader().upload_major(
             major_codes[major_code], org_id, year, initials, log=True
         )
