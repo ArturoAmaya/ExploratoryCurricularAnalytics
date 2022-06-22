@@ -22,7 +22,9 @@ from api import Session
 from college_names import college_names
 from departments import departments
 from output import MajorOutput
-from parse import MajorInfo, major_codes
+from parse import MajorInfo, major_codes, major_plans
+
+Uploaded = Dict[str, int]
 
 __all__ = ["MajorUploader"]
 
@@ -125,21 +127,25 @@ class MajorUploader(Session):
 
 
 @contextmanager
-def track_uploaded_curricula(path: str) -> Generator[Dict[str, int], None, None]:
-    SEPARATOR = ": https://curricularanalytics.org/curriculums/"
+def track_uploaded_curricula(path: str) -> Generator[Uploaded, None, None]:
+    URL_BASE = "https://curricularanalytics.org/curriculums/"
     with open(path) as file:
-        curricula: Dict[str, int] = {}
+        curricula: Uploaded = {}
         for line in file.read().splitlines():
-            major_code, curriculum_id = line.split(SEPARATOR)
-            curricula[major_code] = int(curriculum_id)
+            major_code, curriculum_id = line.split(":", maxsplit=1)
+            curriculum_id = curriculum_id.strip()
+            if curriculum_id.startswith(URL_BASE):
+                curricula[major_code] = int(curriculum_id[len(URL_BASE) :])
     try:
         yield curricula
     finally:
         with open(path, "w") as file:
-            for major_code, curriculum_id in sorted(
-                curricula.items(), key=lambda entry: entry[0]
-            ):
-                file.write(f"{major_code}{SEPARATOR}{curriculum_id}\n")
+            for major_code in major_plans.keys():
+                curriculum_id = curricula.get(major_code)
+                if curriculum_id is None:
+                    file.write(f"{major_code}:\n")
+                else:
+                    file.write(f"{major_code}: {URL_BASE}{curriculum_id}\n")
 
 
 if __name__ == "__main__":
@@ -185,6 +191,7 @@ if __name__ == "__main__":
     if initials is None:
         initials = get_env("INITIALS")
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
-        curricula[major_code] = MajorUploader().upload_major(
-            major_codes[major_code], org_id, year, initials, log=True
-        )
+        print(curricula)
+        # curricula[major_code] = MajorUploader().upload_major(
+        #     major_codes[major_code], org_id, year, initials, log=True
+        # )
