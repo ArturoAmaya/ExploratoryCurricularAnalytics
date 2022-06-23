@@ -56,8 +56,7 @@ def read_csv_from(
         from quoted fields and strips whitespace if desired.
         """
         if len(field) > 0 and field[0] == '"':
-            # NOTE: Currently doesn't deal with backslashes
-            field = field[1:-1]
+            field = field[1:-1].replace('""', '"')
         return field.strip() if strip else field
 
     try:
@@ -74,15 +73,10 @@ def read_csv_from(
                     rows.append(row)
                     in_quotes = False
                 last_index: int = 0
-                ignore_next: bool = False  # For backslashes in quotes
                 for i, char in enumerate(line + ","):
                     if in_quotes:
-                        if ignore_next:
-                            ignore_next = False
-                        elif char == '"':
+                        if char == '"':
                             in_quotes = False
-                        elif char == "\\":
-                            ignore_next = True
                     else:
                         if char == '"':
                             in_quotes = True
@@ -280,6 +274,9 @@ prereqs = prereq_rows_to_dict(
         strip=True,
     )[1:]
 )
+# Fix possible errors in prereqs
+prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
+prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
 
 major_plans = plan_rows_to_dict(
     read_csv_from(
@@ -298,4 +295,4 @@ major_codes = major_rows_to_dict(
 )
 
 if __name__ == "__main__":
-    print(major_plans.keys())
+    print(major_plans["LN33"].plans["SN"].quarters[9])

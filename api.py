@@ -284,6 +284,16 @@ class Session:
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
 
+    def get_degree_plans(self, curriculum_id: int) -> Dict[str, int]:
+        with self.request(f"/curriculums/{curriculum_id}") as response:
+            return {
+                match.group(2): int(match.group(1))
+                for match in re.finditer(
+                    r'<a href="/degree_plans/(\d+)">([^<]+)</a>',
+                    response.read().decode("utf-8"),
+                )
+            }
+
     def edit_curriculum(self, curriculum_id: int, curriculum: Curriculum) -> None:
         with self.request(
             f"/curriculums/viz_update/{curriculum_id}",
