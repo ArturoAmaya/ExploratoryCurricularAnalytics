@@ -179,6 +179,11 @@ if __name__ == "__main__":
         "--initials",
         help="Your initials, to sign the CSV file names. Defaults to the INITIALS environment variable.",
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Upload by JSON rather than by CSV files. Uploading by JSON is slower. Defaults to uploading CSV files.",
+    )
     args = parser.parse_args()
     major_code: str = args.major_code
     if major_code not in major_codes:
@@ -193,6 +198,12 @@ if __name__ == "__main__":
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
         if major_code in curricula:
             raise KeyError(f"{major_code} already uploaded")
-        curricula[major_code] = MajorUploader().upload_major(
-            major_codes[major_code], org_id, year, initials, log=True
+        curricula[major_code] = (
+            MajorUploader().upload_major_json(
+                major_codes[major_code], org_id, year, log=True
+            )
+            if args.json
+            else MajorUploader().upload_major(
+                major_codes[major_code], org_id, year, initials, log=True
+            )
         )
