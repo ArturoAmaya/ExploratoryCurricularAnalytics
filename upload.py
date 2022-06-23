@@ -170,19 +170,24 @@ if __name__ == "__main__":
     parser.add_argument(
         "--org",
         type=int,
-        help="The ID of the Curricular Analytics organization to add the curriculum to. Defaults to the ORG_ID environment variable.",
+        help="The ID of the Curricular Analytics organization to add the curriculum to. Default: $ORG_ID",
     )
     parser.add_argument(
-        "--year", type=int, help="The catalog year. Defaults to 2021.", default=2021
+        "--year", type=int, help="The catalog year. Default: 2021", default=2021
     )
     parser.add_argument(
         "--initials",
-        help="Your initials, to sign the CSV file names. Defaults to the INITIALS environment variable.",
+        help="Your initials, to sign the CSV file names. Default: $INITIALS",
     )
     parser.add_argument(
         "--json",
         action="store_true",
-        help="Upload by JSON rather than by CSV files. Uploading by JSON is slower. Defaults to uploading CSV files.",
+        help="Upload by JSON rather than by CSV files. Uploading by JSON is slower. Default: upload CSV files",
+    )
+    parser.add_argument(
+        "--track",
+        action="store_true",
+        help="Whether to keep track of uploaded curricula in files/uploaded.yml. Default: don't keep track",
     )
     args = parser.parse_args()
     major_code: str = args.major_code
@@ -195,15 +200,19 @@ if __name__ == "__main__":
     initials: Optional[str] = args.initials
     if initials is None:
         initials = get_env("INITIALS")
-    with track_uploaded_curricula("./files/uploaded.yml") as curricula:
-        if major_code in curricula:
-            raise KeyError(f"{major_code} already uploaded")
-        curricula[major_code] = (
-            MajorUploader().upload_major_json(
-                major_codes[major_code], org_id, year, log=True
-            )
-            if args.json
-            else MajorUploader().upload_major(
-                major_codes[major_code], org_id, year, initials, log=True
-            )
+    upload = lambda: (
+        MajorUploader().upload_major_json(
+            major_codes[major_code], org_id, year, log=True
         )
+        if args.json
+        else MajorUploader().upload_major(
+            major_codes[major_code], org_id, year, initials, log=True
+        )
+    )
+    if args.track:
+        with track_uploaded_curricula("./files/uploaded.yml") as curricula:
+            if major_code in curricula:
+                raise KeyError(f"{major_code} already uploaded")
+            curricula[major_code] = upload()
+    else:
+        upload()

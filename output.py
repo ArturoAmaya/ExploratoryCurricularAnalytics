@@ -159,7 +159,10 @@ class OutputCourses:
             if course_title in non_course_prereqs:
                 for prereq in non_course_prereqs[course_title]:
                     self.find_prereq(
-                        prereq_ids, coreq_ids, [Prerequisite(prereq, False)],course_title
+                        prereq_ids,
+                        coreq_ids,
+                        [Prerequisite(prereq, False)],
+                        course_title,
                     )
             elif code in prereqs and code != ("MATH", "18"):
                 for alternatives in prereqs[code]:
@@ -235,7 +238,9 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
         yield (
             ",".join(
                 [
-                    f'"{field}"' if any(c in field for c in ",\r\n") else field
+                    '"' + field.replace('"', '""') + '"'
+                    if any(c in field for c in ',"\r\n')
+                    else field
                     for field in row
                 ][:columns]
                 + [""] * (columns - len(row))
