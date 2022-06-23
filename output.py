@@ -44,6 +44,7 @@ unit_overrides: Dict[str, Tuple[CourseCode, float]] = {
     "MATH 11": (("MATH", "11"), 5),
     "CAT 2": (("CAT", "2"), 6),
     "CAT 3": (("CAT", "3"), 6),
+    "PHYS 1C": (("PHYS", "1C"), 3),
 }
 
 
