@@ -9,7 +9,17 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set, Union
+from typing import (
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 from college_names import college_names
 from output_json import Curriculum, Item, Term, Requisite
 
@@ -29,6 +39,11 @@ __all__ = ["MajorOutput"]
 non_course_prereqs: Dict[str, List[CourseCode]] = {
     "SOCI- UD METHODOLOGY": [("SOCI", "60")],
     "TDHD XXX": [("TDTR", "10")],
+}
+unit_overrides: Dict[str, Tuple[CourseCode, float]] = {
+    "MATH 11": (("MATH", "11"), 5),
+    "CAT 2": (("CAT", "2"), 6),
+    "CAT 3": (("CAT", "3"), 6),
 }
 
 
@@ -297,11 +312,12 @@ class MajorOutput:
         # 2. Split lab courses
         processed_courses: List[ProcessedCourse] = []
         for input_course in course_input:
-            if input_course.course.course_title == "MATH 11":
+            if input_course.course.course_title in unit_overrides:
+                course_code, units = unit_overrides[input_course.course.course_title]
                 # Override academic plan's math 11 units to 5.0 units per course
                 # catalog. Must exactly match `MATH 11` because `MATH 11 OR PSYC 60`
                 # probably should still be 4.0 units (#20)
-                processed_courses.append(input_course.process(("MATH", "11"), units=5))
+                processed_courses.append(input_course.process(course_code, units=units))
                 continue
 
             parsed = parse_course_name(input_course.course.course_title)
