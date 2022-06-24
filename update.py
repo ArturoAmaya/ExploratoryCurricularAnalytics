@@ -25,6 +25,7 @@ if __name__ == "__main__":
 
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
         if mode == "edit" and college_code:
+            raise Exception("Do not use!")
             plan_id = get_plan_id(session, curricula, major_code, college_code)
             session.edit_degree_plan(
                 plan_id, MajorOutput(major_code).output_json(college_code)
