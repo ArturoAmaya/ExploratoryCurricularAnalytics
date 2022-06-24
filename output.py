@@ -21,7 +21,7 @@ from typing import (
     Union,
 )
 from college_names import college_names
-from output_json import Curriculum, Item, Term, Requisite
+from output_json import Curriculum, CurriculumHash, Item, Term, Requisite
 
 from parse import (
     CourseCode,
@@ -304,7 +304,9 @@ class MajorOutput:
                     course, course.type == "DEPARTMENT" or course.overlaps_ge, i
                 )
                 for i, quarter in enumerate(self.plans.plans[college].quarters)
-                for course in quarter
+                for course in sorted(
+                    quarter, key=lambda course: course.course_title.strip("^* ")
+                )
             )
             if college
             else (InputCourse(course, True, 0) for course in self.curriculum)
@@ -441,6 +443,20 @@ class MajorOutput:
         for line in rows_to_csv(self.output_plan(college), cols):
             csv += line
         return csv
+
+    @classmethod
+    def from_json(cls, major_code: str, json: CurriculumHash) -> "MajorOutput":
+        output = MajorOutput(major_code)
+        output.course_ids = {}
+        output.start_id = 1
+        for course in json["courses"]:
+            parsed = parse_course_name(course["name"])
+            if parsed:
+                subject, number, _ = parsed
+                output.course_ids[subject, number] = course["id"]
+            if course["id"] + 1 > output.start_id:
+                output.start_id = course["id"] + 1
+        return output
 
 
 if __name__ == "__main__":

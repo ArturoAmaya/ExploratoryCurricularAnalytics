@@ -25,11 +25,11 @@ if __name__ == "__main__":
 
     with track_uploaded_curricula("./files/uploaded.yml") as curricula:
         if mode == "edit" and college_code:
-            raise Exception("Do not use!")
-            plan_id = get_plan_id(session, curricula, major_code, college_code)
-            session.edit_degree_plan(
-                plan_id, MajorOutput(major_code).output_json(college_code)
+            output = MajorOutput.from_json(
+                major_code, session.get_curriculum(curricula[major_code])
             )
+            plan_id = get_plan_id(session, curricula, major_code, college_code)
+            session.edit_degree_plan(plan_id, output.output_json(college_code))
             print(f"https://curricularanalytics.org/degree_plans/{plan_id}")
         elif mode == "delete":
             if college_code:
