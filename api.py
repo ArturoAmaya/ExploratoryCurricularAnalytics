@@ -3,7 +3,6 @@ import json
 import re
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     Literal,
@@ -23,7 +22,6 @@ from output_json import (
     DegreePlan,
     DegreePlanHash,
     DegreePlanJson,
-    object_hook,
 )
 
 CsvFile = Tuple[str, str]
@@ -113,11 +111,9 @@ class Session:
                 "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
             ) if error.code == 401 else error
 
-    def get_json(
-        self, path: str, object_hook: Optional[Callable[[Dict[Any, Any]], Any]] = None
-    ) -> Any:
+    def get_json(self, path: str) -> Any:
         with self.request(path, {"Accept": "application/json"}) as response:
-            return json.load(response, object_hook=object_hook)
+            return json.load(response)
 
     def get_auth_token(self) -> str:
         if self.authenticity_token is None:
@@ -315,10 +311,10 @@ class Session:
             }
 
     def get_curriculum(self, curriculum_id: int) -> CurriculumHash:
-        return self.get_json(f"/vis_curriculum_hash/{curriculum_id}", object_hook)
+        return self.get_json(f"/vis_curriculum_hash/{curriculum_id}")
 
     def get_degree_plan(self, plan_id: int) -> DegreePlanHash:
-        return self.get_json(f"/vis_degree_plan_hash/{plan_id}", object_hook)
+        return self.get_json(f"/vis_degree_plan_hash/{plan_id}")
 
     def edit_curriculum(self, curriculum_id: int, curriculum: Curriculum) -> None:
         with self.request(
