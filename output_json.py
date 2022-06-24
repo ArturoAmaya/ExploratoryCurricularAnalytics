@@ -1,4 +1,4 @@
-from typing import List, Literal, TypedDict
+from typing import List, Literal, Optional, TypedDict
 
 
 class Requisite(TypedDict):
@@ -34,3 +34,28 @@ class DegreePlan(TypedDict):
 class DegreePlanJson(TypedDict):
     curriculum: Curriculum
     degree_plan: DegreePlan
+
+
+class Course(TypedDict):
+    id: int
+    name: str
+    credits: float
+    requisites: List[Requisite]
+    nameCanonical: Optional[str]
+    nameSub: Optional[str]
+    annotation: Optional[str]
+
+
+class CurriculumHash(TypedDict):
+    courses: List[Course]
+    name: str
+
+
+class TermHash(TypedDict):
+    id: int
+    name: str
+    items: List[Course]
+
+
+class DegreePlanHash(TypedDict):
+    terms: List[TermHash]
