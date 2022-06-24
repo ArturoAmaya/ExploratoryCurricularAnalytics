@@ -304,7 +304,9 @@ class MajorOutput:
                     course, course.type == "DEPARTMENT" or course.overlaps_ge, i
                 )
                 for i, quarter in enumerate(self.plans.plans[college].quarters)
-                for course in quarter
+                for course in sorted(
+                    quarter, key=lambda course: course.course_title.strip("^* ")
+                )
             )
             if college
             else (InputCourse(course, True, 0) for course in self.curriculum)
