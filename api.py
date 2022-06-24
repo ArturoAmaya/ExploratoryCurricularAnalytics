@@ -1,12 +1,30 @@
 from http.client import HTTPResponse
 import json
 import re
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+)
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from output_json import Curriculum, CurriculumJson, DegreePlan, DegreePlanJson
+from output_json import (
+    Curriculum,
+    CurriculumHash,
+    CurriculumJson,
+    DegreePlan,
+    DegreePlanHash,
+    DegreePlanJson,
+    object_hook,
+)
 
 CsvFile = Tuple[str, str]
 FormData = Dict[str, Union[str, Tuple[str, bytes]]]
@@ -95,9 +113,11 @@ class Session:
                 "Curricular Analytics isn't recognizing your `CA_SESSION` environment variable. Could you try getting the session cookie again? See the README for how."
             ) if error.code == 401 else error
 
-    def get_json(self, path: str) -> Any:
+    def get_json(
+        self, path: str, object_hook: Optional[Callable[[Dict[Any, Any]], Any]] = None
+    ) -> Any:
         with self.request(path, {"Accept": "application/json"}) as response:
-            return json.load(response)
+            return json.load(response, object_hook=object_hook)
 
     def get_auth_token(self) -> str:
         if self.authenticity_token is None:
@@ -294,6 +314,12 @@ class Session:
                 )
             }
 
+    def get_curriculum(self, curriculum_id: int) -> CurriculumHash:
+        return self.get_json(f"/vis_curriculum_hash/{curriculum_id}", object_hook)
+
+    def get_degree_plan(self, plan_id: int) -> DegreePlanHash:
+        return self.get_json(f"/vis_degree_plan_hash/{plan_id}", object_hook)
+
     def edit_curriculum(self, curriculum_id: int, curriculum: Curriculum) -> None:
         with self.request(
             f"/curriculums/viz_update/{curriculum_id}",
@@ -338,7 +364,6 @@ class Session:
 if __name__ == "__main__":
     import os
     from dotenv import load_dotenv  # type: ignore
-    from output import MajorOutput
 
     load_dotenv()
     ca_session = os.getenv("CA_SESSION")
@@ -346,4 +371,5 @@ if __name__ == "__main__":
         raise EnvironmentError("No CA_SESSION environment variable")
     session = Session(ca_session)
 
-    session.edit_curriculum(19750, MajorOutput("DS25").output_json())
+    print(session.get_curriculum(20039))
+    print(session.get_degree_plan(12653))
