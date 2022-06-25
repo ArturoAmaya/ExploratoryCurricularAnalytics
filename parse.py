@@ -176,6 +176,7 @@ class MajorPlans(NamedTuple):
             for college_code in least_weird_colleges:
                 if college_code in self.plans:
                     college = college_code
+                    break
             if college is None:
                 raise KeyError("Major has no college plans.")
         return [
