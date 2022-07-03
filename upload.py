@@ -125,6 +125,34 @@ class MajorUploader(Session):
                 print(f"[{major_code}] {college_name} degree plan uploaded")
         return curriculum_id
 
+    def edit_major(
+        self, curriculum_id: int, major: MajorInfo, log: bool = False
+    ) -> int:
+        """
+        Similar to `upload_major_json`, but instead edits an existing curriculum.
+        """
+        major_code = major.isis_code
+        output = MajorOutput(major_code)
+        self.edit_curriculum(curriculum_id, output.output_json())
+        if log:
+            print(f"[{major_code}] Curriculum edited")
+        plan_ids = self.get_degree_plans(curriculum_id)
+        for college_code, college_name in college_names.items():
+            plan_name = f"{major_code}/{college_name}"
+            if college_code not in output.plans.plans:
+                continue
+            if plan_name in plan_ids:
+                self.edit_degree_plan(curriculum_id, output.output_json(college_code))
+                if log:
+                    print(f"[{major_code}] {college_name} degree plan edited")
+            else:
+                self.upload_degree_plan(
+                    curriculum_id, plan_name, output.output_json(college_code)
+                )
+                if log:
+                    print(f"[{major_code}] {college_name} degree plan uploaded")
+        return curriculum_id
+
 
 @contextmanager
 def track_uploaded_curricula(path: str) -> Generator[Uploaded, None, None]:
