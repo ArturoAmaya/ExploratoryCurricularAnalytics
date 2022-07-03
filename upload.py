@@ -133,6 +133,9 @@ class MajorUploader(Session):
         major_code = major.isis_code
         output = MajorOutput(major_code)
         self.edit_curriculum(curriculum_id, output.output_json())
+        self.edit_curriculum_metadata(
+            curriculum_id, name=f"{major_code}-{major.name}", cip_code=major.cip_code
+        )
         if log:
             print(f"[{major_code}] Curriculum edited")
         plan_ids = self.get_degree_plans(curriculum_id)

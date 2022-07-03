@@ -325,6 +325,31 @@ class Session:
         ):
             pass
 
+    def edit_curriculum_metadata(
+        self,
+        curriculum_id: int,
+        name: Optional[str] = None,
+        cip_code: Optional[str] = None,
+        organization_id: Optional[int] = None,
+        year: Optional[int] = None,
+        public: Optional[bool] = None,
+    ) -> None:
+        form: FormData = {
+            "authenticity_token": self.get_auth_token(),
+            "_method": "patch",
+        }
+        if name is not None:
+            form["curriculum[name]"] = name
+        if cip_code is not None:
+            form["curriculum[cip]"] = cip_code
+        if organization_id is not None:
+            form["curriculum[organization_id]"] = str(organization_id)
+        if year is not None:
+            form["curriculum[catalog_year]"] = str(year)
+        if public is not None:
+            form["curriculum[publicly_visible]"] = str(int(public))
+        self.post_form(f"/curriculums/{curriculum_id}", form)
+
     def edit_degree_plan(self, plan_id: int, curriculum: Curriculum) -> None:
         with self.request(
             f"/degree_plans/viz_update/{plan_id}",
@@ -367,5 +392,4 @@ if __name__ == "__main__":
         raise EnvironmentError("No CA_SESSION environment variable")
     session = Session(ca_session)
 
-    print(session.get_curriculum(20039))
-    print(session.get_degree_plan(12653))
+    session.edit_curriculum_metadata(20069, public=True, name="very cool")
