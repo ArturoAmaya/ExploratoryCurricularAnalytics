@@ -34,7 +34,12 @@ if __name__ == "__main__":
                 session.edit_degree_plan(plan_id, output.output_json(college_code))
                 print(f"https://curricularanalytics.org/degree_plans/{plan_id}")
             else:
-                session.edit_major(curricula[major_code], major_codes[major_code], log=True)
+                session.edit_major(
+                    curricula[major_code],
+                    major_codes[major_code],
+                    start_id=200,
+                    log=True,
+                )
         elif mode == "delete":
             if college_code:
                 plan_id = get_plan_id(session, curricula, major_code, college_code)

@@ -125,13 +125,13 @@ class MajorUploader(Session):
         return curriculum_id
 
     def edit_major(
-        self, curriculum_id: int, major: MajorInfo, log: bool = False
+        self, curriculum_id: int, major: MajorInfo, start_id: int = 1, log: bool = False
     ) -> int:
         """
         Similar to `upload_major_json`, but instead edits an existing curriculum.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code)
+        output = MajorOutput(major_code, start_id=start_id)
         self.edit_curriculum(curriculum_id, output.output_json())
         self.edit_curriculum_metadata(
             curriculum_id, name=f"{major_code}-{major.name}", cip_code=major.cip_code
