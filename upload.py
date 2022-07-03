@@ -144,7 +144,9 @@ class MajorUploader(Session):
             if college_code not in output.plans.plans:
                 continue
             if plan_name in plan_ids:
-                self.edit_degree_plan(curriculum_id, output.output_json(college_code))
+                self.edit_degree_plan(
+                    plan_ids[plan_name], output.output_json(college_code)
+                )
                 if log:
                     print(f"[{major_code}] {college_name} degree plan edited")
             else:

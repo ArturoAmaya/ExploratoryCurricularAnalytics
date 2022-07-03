@@ -37,7 +37,7 @@ if __name__ == "__main__":
                 session.edit_major(
                     curricula[major_code],
                     major_codes[major_code],
-                    start_id=200,
+                    start_id=600,
                     log=True,
                 )
         elif mode == "delete":
