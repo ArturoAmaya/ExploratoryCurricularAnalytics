@@ -242,8 +242,8 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
         _,  # UCOP Major Code (CSS)
         isis_code,  # ISIS Major Code
         _,  # Major Abbreviation
-        description,  # Major Description
-        _,  # Diploma Title
+        _,  # Major Description
+        title,  # Diploma Title
         _,  # Start Term
         _,  # End Term
         _,  # Student Level
@@ -260,7 +260,7 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
     ) in rows:
         majors[isis_code] = MajorInfo(
             isis_code,
-            description,
+            title,
             department,
             cip_code[0:2] + "." + cip_code[2:],
             set(award_types.split(" ")) if award_types else set(),

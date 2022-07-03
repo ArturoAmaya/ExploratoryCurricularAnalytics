@@ -20,7 +20,6 @@ from dotenv import load_dotenv  # type: ignore
 
 from api import Session
 from college_names import college_names
-from departments import departments
 from output import MajorOutput
 from parse import MajorInfo, major_codes, major_plans
 
@@ -62,7 +61,7 @@ class MajorUploader(Session):
         output = MajorOutput(major_code)
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{departments[major.department]}",
+            f"{major_code}-{major.name}",
             year,
             (f"{initials}-Curriculum Plan-{major_code}.csv", output.output()),
         )
@@ -101,7 +100,7 @@ class MajorUploader(Session):
         output = MajorOutput(major_code)
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{departments[major.department]}",
+            f"{major_code}-{major.name}",
             year,
             output.output_json(),
             major.cip_code,
