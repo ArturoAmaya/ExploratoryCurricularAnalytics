@@ -273,12 +273,13 @@ class MajorOutput:
     plans: MajorPlans
     course_ids: Dict[CourseCode, int]
     curriculum: List[PlannedCourse]
-    start_id = 1
+    start_id: int
 
-    def __init__(self, major_code: str) -> None:
+    def __init__(self, major_code: str, start_id: int = 1) -> None:
         self.plans = major_plans[major_code]
         self.course_ids = {}
         self.curriculum = self.plans.curriculum()
+        self.start_id = start_id
         self.populate_course_ids()
 
     def populate_course_ids(self) -> None:
@@ -407,32 +408,39 @@ class MajorOutput:
                 Term(id=i + 1, curriculum_items=[]) for i in range(12 if college else 1)
             ]
         )
-        for (
-            course_id,
-            course_title,
-            _,
-            prereq_ids,
-            coreq_ids,
-            units,
-            term,
-        ) in self.get_courses(college).list_courses():
-            curriculum["curriculum_terms"][term]["curriculum_items"].append(
-                Item(
-                    name=course_title,
-                    id=course_id,
-                    credits=units,
-                    curriculum_requisites=[
-                        Requisite(
-                            source_id=prereq_id, target_id=course_id, type="prereq"
-                        )
-                        for prereq_id in prereq_ids
-                    ]
-                    + [
-                        Requisite(source_id=coreq_id, target_id=course_id, type="coreq")
-                        for coreq_id in coreq_ids
-                    ],
+        processed = self.get_courses(college)
+        # Put college courses at the bottom of each quarter, consistent with CSV
+        for major_course_section in True, False:
+            if not college and not major_course_section:
+                break
+            for (
+                course_id,
+                course_title,
+                _,
+                prereq_ids,
+                coreq_ids,
+                units,
+                term,
+            ) in processed.list_courses(major_course_section):
+                curriculum["curriculum_terms"][term]["curriculum_items"].append(
+                    Item(
+                        name=course_title,
+                        id=course_id,
+                        credits=units,
+                        curriculum_requisites=[
+                            Requisite(
+                                source_id=prereq_id, target_id=course_id, type="prereq"
+                            )
+                            for prereq_id in prereq_ids
+                        ]
+                        + [
+                            Requisite(
+                                source_id=coreq_id, target_id=course_id, type="coreq"
+                            )
+                            for coreq_id in coreq_ids
+                        ],
+                    )
                 )
-            )
         return curriculum
 
     def output(self, college: Optional[str] = None) -> str:

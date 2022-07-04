@@ -20,7 +20,6 @@ from dotenv import load_dotenv  # type: ignore
 
 from api import Session
 from college_names import college_names
-from departments import departments
 from output import MajorOutput
 from parse import MajorInfo, major_codes, major_plans
 
@@ -62,7 +61,7 @@ class MajorUploader(Session):
         output = MajorOutput(major_code)
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{departments[major.department]}",
+            f"{major_code}-{major.name}",
             year,
             (f"{initials}-Curriculum Plan-{major_code}.csv", output.output()),
         )
@@ -101,7 +100,7 @@ class MajorUploader(Session):
         output = MajorOutput(major_code)
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{departments[major.department]}",
+            f"{major_code}-{major.name}",
             year,
             output.output_json(),
             major.cip_code,
@@ -123,6 +122,39 @@ class MajorUploader(Session):
             )
             if log:
                 print(f"[{major_code}] {college_name} degree plan uploaded")
+        return curriculum_id
+
+    def edit_major(
+        self, curriculum_id: int, major: MajorInfo, start_id: int = 1, log: bool = False
+    ) -> int:
+        """
+        Similar to `upload_major_json`, but instead edits an existing curriculum.
+        """
+        major_code = major.isis_code
+        output = MajorOutput(major_code, start_id=start_id)
+        self.edit_curriculum(curriculum_id, output.output_json())
+        self.edit_curriculum_metadata(
+            curriculum_id, name=f"{major_code}-{major.name}", cip_code=major.cip_code
+        )
+        if log:
+            print(f"[{major_code}] Curriculum edited")
+        plan_ids = self.get_degree_plans(curriculum_id)
+        for college_code, college_name in college_names.items():
+            plan_name = f"{major_code}/{college_name}"
+            if college_code not in output.plans.plans:
+                continue
+            if plan_name in plan_ids:
+                self.edit_degree_plan(
+                    plan_ids[plan_name], output.output_json(college_code)
+                )
+                if log:
+                    print(f"[{major_code}] {college_name} degree plan edited")
+            else:
+                self.upload_degree_plan(
+                    curriculum_id, plan_name, output.output_json(college_code)
+                )
+                if log:
+                    print(f"[{major_code}] {college_name} degree plan uploaded")
         return curriculum_id
 
 
