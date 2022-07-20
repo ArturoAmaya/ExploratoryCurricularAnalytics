@@ -1,12 +1,28 @@
 from http.client import HTTPResponse
 import json
 import re
-from typing import Any, Dict, List, Literal, NamedTuple, Optional, Tuple, Union
+from typing import (
+    Any,
+    Dict,
+    List,
+    Literal,
+    NamedTuple,
+    Optional,
+    Tuple,
+    Union,
+)
 from urllib.error import HTTPError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from output_json import Curriculum, CurriculumJson, DegreePlan, DegreePlanJson
+from output_json import (
+    Curriculum,
+    CurriculumHash,
+    CurriculumJson,
+    DegreePlan,
+    DegreePlanHash,
+    DegreePlanJson,
+)
 
 CsvFile = Tuple[str, str]
 FormData = Dict[str, Union[str, Tuple[str, bytes]]]
@@ -284,6 +300,22 @@ class Session:
             for raw_name, raw_organization, cip_code, year, date_created, _ in data
         ]
 
+    def get_degree_plans(self, curriculum_id: int) -> Dict[str, int]:
+        with self.request(f"/curriculums/{curriculum_id}") as response:
+            return {
+                match.group(2): int(match.group(1))
+                for match in re.finditer(
+                    r'<a href="/degree_plans/(\d+)">([^<]+)</a>',
+                    response.read().decode("utf-8"),
+                )
+            }
+
+    def get_curriculum(self, curriculum_id: int) -> CurriculumHash:
+        return self.get_json(f"/vis_curriculum_hash/{curriculum_id}")
+
+    def get_degree_plan(self, plan_id: int) -> DegreePlanHash:
+        return self.get_json(f"/vis_degree_plan_hash/{plan_id}")
+
     def edit_curriculum(self, curriculum_id: int, curriculum: Curriculum) -> None:
         with self.request(
             f"/curriculums/viz_update/{curriculum_id}",
@@ -292,6 +324,31 @@ class Session:
             "PATCH",
         ):
             pass
+
+    def edit_curriculum_metadata(
+        self,
+        curriculum_id: int,
+        name: Optional[str] = None,
+        cip_code: Optional[str] = None,
+        organization_id: Optional[int] = None,
+        year: Optional[int] = None,
+        public: Optional[bool] = None,
+    ) -> None:
+        form: FormData = {
+            "authenticity_token": self.get_auth_token(),
+            "_method": "patch",
+        }
+        if name is not None:
+            form["curriculum[name]"] = name
+        if cip_code is not None:
+            form["curriculum[cip]"] = cip_code
+        if organization_id is not None:
+            form["curriculum[organization_id]"] = str(organization_id)
+        if year is not None:
+            form["curriculum[catalog_year]"] = str(year)
+        if public is not None:
+            form["curriculum[publicly_visible]"] = str(int(public))
+        self.post_form(f"/curriculums/{curriculum_id}", form)
 
     def edit_degree_plan(self, plan_id: int, curriculum: Curriculum) -> None:
         with self.request(
@@ -328,7 +385,6 @@ class Session:
 if __name__ == "__main__":
     import os
     from dotenv import load_dotenv  # type: ignore
-    from output import MajorOutput
 
     load_dotenv()
     ca_session = os.getenv("CA_SESSION")
@@ -336,4 +392,4 @@ if __name__ == "__main__":
         raise EnvironmentError("No CA_SESSION environment variable")
     session = Session(ca_session)
 
-    session.edit_curriculum(19750, MajorOutput("DS25").output_json())
+    session.edit_curriculum_metadata(20069, public=True, name="very cool")

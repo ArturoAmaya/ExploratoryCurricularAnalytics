@@ -9,9 +9,19 @@ Exports:
     variable.
 """
 
-from typing import Dict, Generator, Iterable, List, NamedTuple, Optional, Set
+from typing import (
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    NamedTuple,
+    Optional,
+    Set,
+    Tuple,
+    Union,
+)
 from college_names import college_names
-from output_json import Curriculum, Item, Term, Requisite
+from output_json import Curriculum, CurriculumHash, Item, Term, Requisite
 
 from parse import (
     CourseCode,
@@ -29,6 +39,12 @@ __all__ = ["MajorOutput"]
 non_course_prereqs: Dict[str, List[CourseCode]] = {
     "SOCI- UD METHODOLOGY": [("SOCI", "60")],
     "TDHD XXX": [("TDTR", "10")],
+}
+unit_overrides: Dict[str, Tuple[CourseCode, float]] = {
+    "MATH 11": (("MATH", "11"), 5),
+    "CAT 2": (("CAT", "2"), 6),
+    "CAT 3": (("CAT", "3"), 6),
+    "PHYS 1C": (("PHYS", "1C"), 3),
 }
 
 
@@ -80,14 +96,17 @@ class OutputCourses:
     course_ids: Dict[CourseCode, int]
     duplicate_titles: Dict[str, int]
     claimed_ids: Set[CourseCode]
+    degree_plan: bool
 
     def __init__(
         self,
         processed_courses: List[ProcessedCourse],
         start_id: int,
         course_ids: Dict[CourseCode, int],
+        degree_plan: bool,
     ) -> None:
         self.processed_courses = processed_courses
+        self.degree_plan = degree_plan
 
         # 3. Assign course IDs
         self.current_id = start_id
@@ -109,16 +128,25 @@ class OutputCourses:
         # get used once
         self.claimed_ids = set(course_ids.keys())
 
-    # 4. Get prerequisites and output
+    # 4. Get prerequisites
     def find_prereq(
         self,
         prereq_ids: List[int],
         coreq_ids: List[int],
         alternatives: List[Prerequisite],
+        before: Union[int, str],
     ) -> None:
+        # Find first processed course whose code is in `alternatives`
         for course in self.processed_courses:
             if course.code is None:
                 continue
+            # Assumes processed courses are chronological
+            if isinstance(before, int):
+                if course.term >= before:
+                    return
+            else:
+                if course.course_title == before:
+                    return
             for code, concurrent in alternatives:
                 if course.code == code:
                     (coreq_ids if concurrent else prereq_ids).append(
@@ -127,13 +155,10 @@ class OutputCourses:
                     return
 
     def list_courses(
-        self, major_course_section: Optional[bool] = None
+        self, show_major: Optional[bool] = None
     ) -> Generator[OutputCourse, None, None]:
         for course_title, code, units, major_course, term in self.processed_courses:
-            if (
-                major_course_section is not None
-                and major_course != major_course_section
-            ):
+            if show_major is not None and major_course != show_major:
                 continue
 
             if code in self.claimed_ids:
@@ -150,11 +175,19 @@ class OutputCourses:
             if course_title in non_course_prereqs:
                 for prereq in non_course_prereqs[course_title]:
                     self.find_prereq(
-                        prereq_ids, coreq_ids, [Prerequisite(prereq, False)]
+                        prereq_ids,
+                        coreq_ids,
+                        [Prerequisite(prereq, False)],
+                        course_title,
                     )
             elif code in prereqs and code != ("MATH", "18"):
                 for alternatives in prereqs[code]:
-                    self.find_prereq(prereq_ids, coreq_ids, alternatives)
+                    self.find_prereq(
+                        prereq_ids,
+                        coreq_ids,
+                        alternatives,
+                        term if self.degree_plan else course_title,
+                    )
 
             if course_title in self.duplicate_titles:
                 self.duplicate_titles[course_title] += 1
@@ -221,7 +254,9 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
         yield (
             ",".join(
                 [
-                    f'"{field}"' if any(c in field for c in ",\r\n") else field
+                    '"' + field.replace('"', '""') + '"'
+                    if any(c in field for c in ',"\r\n')
+                    else field
                     for field in row
                 ][:columns]
                 + [""] * (columns - len(row))
@@ -238,12 +273,13 @@ class MajorOutput:
     plans: MajorPlans
     course_ids: Dict[CourseCode, int]
     curriculum: List[PlannedCourse]
-    start_id = 1
+    start_id: int
 
-    def __init__(self, major_code: str) -> None:
+    def __init__(self, major_code: str, start_id: int = 1) -> None:
         self.plans = major_plans[major_code]
         self.course_ids = {}
         self.curriculum = self.plans.curriculum()
+        self.start_id = start_id
         self.populate_course_ids()
 
     def populate_course_ids(self) -> None:
@@ -269,7 +305,9 @@ class MajorOutput:
                     course, course.type == "DEPARTMENT" or course.overlaps_ge, i
                 )
                 for i, quarter in enumerate(self.plans.plans[college].quarters)
-                for course in quarter
+                for course in sorted(
+                    quarter, key=lambda course: course.course_title.strip("^* ")
+                )
             )
             if college
             else (InputCourse(course, True, 0) for course in self.curriculum)
@@ -278,11 +316,12 @@ class MajorOutput:
         # 2. Split lab courses
         processed_courses: List[ProcessedCourse] = []
         for input_course in course_input:
-            if input_course.course.course_title == "MATH 11":
+            if input_course.course.course_title in unit_overrides:
+                course_code, units = unit_overrides[input_course.course.course_title]
                 # Override academic plan's math 11 units to 5.0 units per course
                 # catalog. Must exactly match `MATH 11` because `MATH 11 OR PSYC 60`
                 # probably should still be 4.0 units (#20)
-                processed_courses.append(input_course.process(("MATH", "11"), units=5))
+                processed_courses.append(input_course.process(course_code, units=units))
                 continue
 
             parsed = parse_course_name(input_course.course.course_title)
@@ -307,7 +346,9 @@ class MajorOutput:
             else:
                 processed_courses.append(input_course.process())
 
-        return OutputCourses(processed_courses, self.start_id, {**self.course_ids})
+        return OutputCourses(
+            processed_courses, self.start_id, {**self.course_ids}, bool(college)
+        )
 
     def output_plan(
         self, college: Optional[str] = None
@@ -367,32 +408,39 @@ class MajorOutput:
                 Term(id=i + 1, curriculum_items=[]) for i in range(12 if college else 1)
             ]
         )
-        for (
-            course_id,
-            course_title,
-            _,
-            prereq_ids,
-            coreq_ids,
-            units,
-            term,
-        ) in self.get_courses(college).list_courses():
-            curriculum["curriculum_terms"][term]["curriculum_items"].append(
-                Item(
-                    name=course_title,
-                    id=course_id,
-                    credits=units,
-                    curriculum_requisites=[
-                        Requisite(
-                            source_id=prereq_id, target_id=course_id, type="prereq"
-                        )
-                        for prereq_id in prereq_ids
-                    ]
-                    + [
-                        Requisite(source_id=coreq_id, target_id=course_id, type="coreq")
-                        for coreq_id in coreq_ids
-                    ],
+        processed = self.get_courses(college)
+        # Put college courses at the bottom of each quarter, consistent with CSV
+        for major_course_section in True, False:
+            if not college and not major_course_section:
+                break
+            for (
+                course_id,
+                course_title,
+                _,
+                prereq_ids,
+                coreq_ids,
+                units,
+                term,
+            ) in processed.list_courses(major_course_section):
+                curriculum["curriculum_terms"][term]["curriculum_items"].append(
+                    Item(
+                        name=course_title,
+                        id=course_id,
+                        credits=units,
+                        curriculum_requisites=[
+                            Requisite(
+                                source_id=prereq_id, target_id=course_id, type="prereq"
+                            )
+                            for prereq_id in prereq_ids
+                        ]
+                        + [
+                            Requisite(
+                                source_id=coreq_id, target_id=course_id, type="coreq"
+                            )
+                            for coreq_id in coreq_ids
+                        ],
+                    )
                 )
-            )
         return curriculum
 
     def output(self, college: Optional[str] = None) -> str:
@@ -403,6 +451,20 @@ class MajorOutput:
         for line in rows_to_csv(self.output_plan(college), cols):
             csv += line
         return csv
+
+    @classmethod
+    def from_json(cls, major_code: str, json: CurriculumHash) -> "MajorOutput":
+        output = MajorOutput(major_code)
+        output.course_ids = {}
+        output.start_id = 1
+        for course in json["courses"]:
+            parsed = parse_course_name(course["name"])
+            if parsed:
+                subject, number, _ = parsed
+                output.course_ids[subject, number] = course["id"]
+            if course["id"] + 1 > output.start_id:
+                output.start_id = course["id"] + 1
+        return output
 
 
 if __name__ == "__main__":
