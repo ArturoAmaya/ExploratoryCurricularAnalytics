@@ -180,8 +180,8 @@ class OutputCourses:
                         [Prerequisite(prereq, False)],
                         course_title,
                     )
-            elif code in prereqs and code != ("MATH", "18"):
-                for alternatives in prereqs[code]:
+            elif code in prereqs() and code != ("MATH", "18"):
+                for alternatives in prereqs()[code]:
                     self.find_prereq(
                         prereq_ids,
                         coreq_ids,
@@ -276,7 +276,7 @@ class MajorOutput:
     start_id: int
 
     def __init__(self, major_code: str, start_id: int = 1) -> None:
-        self.plans = major_plans[major_code]
+        self.plans = major_plans()[major_code]
         self.course_ids = {}
         self.curriculum = self.plans.curriculum()
         self.start_id = start_id
@@ -360,7 +360,7 @@ class MajorOutput:
         the college isn't specified, then `output_plan` will output the major's
         curriculum instead.
         """
-        major_info = major_codes[self.plans.major_code]
+        major_info = major_codes()[self.plans.major_code]
         # NOTE: Currently just gets the last listed award type (bias towards BS over
         # BA). Will see how to deal with BA vs BS
         yield from output_header(

@@ -22,11 +22,6 @@ __all__ = ["prereqs", "major_plans", "major_codes"]
 CourseCode = Tuple[str, str]
 
 
-class Prerequisite(NamedTuple):
-    course_code: CourseCode
-    allow_concurrent: bool
-
-
 def read_csv_from(
     path: str, not_found_msg: Optional[str] = None, strip: bool = False
 ) -> List[List[str]]:
@@ -93,6 +88,11 @@ def read_csv_from(
     return rows
 
 
+class Prerequisite(NamedTuple):
+    course_code: CourseCode
+    allow_concurrent: bool
+
+
 def prereq_rows_to_dict(
     rows: List[List[str]],
 ) -> Dict[CourseCode, List[List[Prerequisite]]]:
@@ -118,6 +118,25 @@ def prereq_rows_to_dict(
     return prereqs
 
 
+_prereqs: Optional[Dict[CourseCode, List[List[Prerequisite]]]] = None
+
+
+def prereqs():
+    global _prereqs
+    if _prereqs is None:
+        _prereqs = prereq_rows_to_dict(
+            read_csv_from(
+                "./files/prereqs.csv",
+                "There is no `prereqs.csv` file in the files/ folder. See the README for where to download it from.",
+                strip=True,
+            )[1:]
+        )
+        # Fix possible errors in prereqs
+        _prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
+        _prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
+    return _prereqs
+
+
 class PlannedCourse(NamedTuple):
     """
     Represents a course in an academic plan.
@@ -138,10 +157,6 @@ class Plan(NamedTuple):
     quarters: List[List[PlannedCourse]]
 
 
-# College codes from least to most weird colleges (see #14)
-least_weird_colleges = ["TH", "WA", "SN", "MU", "FI", "RE", "SI"]
-
-
 class MajorPlans(NamedTuple):
     """
     Represents a major's set of academic plans. Contains plans for each college.
@@ -149,6 +164,9 @@ class MajorPlans(NamedTuple):
     To get the plan for a specific college, use the two-letter college code. For
     example, `plans["FI"]` contains the academic plan for ERC (Fifth College).
     """
+
+    # College codes from least to most weird colleges (see #14)
+    least_weird_colleges = ["TH", "WA", "SN", "MU", "FI", "RE", "SI"]
 
     department: str
     major_code: str
@@ -173,7 +191,7 @@ class MajorPlans(NamedTuple):
         different college.
         """
         if college is None:
-            for college_code in least_weird_colleges:
+            for college_code in MajorPlans.least_weird_colleges:
                 if college_code in self.plans:
                     college = college_code
                     break
@@ -217,6 +235,22 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
             PlannedCourse(course_title, float(units), course_type, overlap == "Y")
         )
     return majors
+
+
+_major_plans: Optional[Dict[str, MajorPlans]] = None
+
+
+def major_plans():
+    global _major_plans
+    if _major_plans is None:
+        _major_plans = plan_rows_to_dict(
+            read_csv_from(
+                "./files/academic_plans.csv",
+                "There is no `academic_plans.csv` file in the files/ folder. See the README for where to download it from.",
+                strip=True,
+            )[1:]
+        )
+    return _major_plans
 
 
 class MajorInfo(NamedTuple):
@@ -268,32 +302,21 @@ def major_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorInfo]:
     return majors
 
 
-prereqs = prereq_rows_to_dict(
-    read_csv_from(
-        "./files/prereqs.csv",
-        "There is no `prereqs.csv` file in the files/ folder. See the README for where to download it from.",
-        strip=True,
-    )[1:]
-)
-# Fix possible errors in prereqs
-prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
-prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
+_major_codes: Optional[Dict[str, MajorInfo]] = None
 
-major_plans = plan_rows_to_dict(
-    read_csv_from(
-        "./files/academic_plans.csv",
-        "There is no `academic_plans.csv` file in the files/ folder. See the README for where to download it from.",
-        strip=True,
-    )[1:]
-)
 
-major_codes = major_rows_to_dict(
-    read_csv_from(
-        "./files/isis_major_code_list.xlsx - Major Codes.csv",
-        "There is no `isis_major_code_list.xlsx - Major Codes.csv` file in the files/ folder. See the README for where to download it from.",
-        strip=True,
-    )[1:]
-)
+def major_codes():
+    global _major_codes
+    if _major_codes is None:
+        _major_codes = major_rows_to_dict(
+            read_csv_from(
+                "./files/isis_major_code_list.xlsx - Major Codes.csv",
+                "There is no `isis_major_code_list.xlsx - Major Codes.csv` file in the files/ folder. See the README for where to download it from.",
+                strip=True,
+            )[1:]
+        )
+    return _major_codes
+
 
 if __name__ == "__main__":
-    print(major_plans["LN33"].plans["SN"].quarters[9])
+    print(major_plans()["LN33"].plans["SN"].quarters[9])
