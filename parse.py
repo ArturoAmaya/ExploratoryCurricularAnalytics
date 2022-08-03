@@ -15,6 +15,7 @@ Exports:
     objects, which contains data from the ISIS major codes spreadsheet.
 """
 
+from re import I
 from typing import Dict, List, Literal, NamedTuple, Optional, Set, Tuple
 
 __all__ = ["prereqs", "major_plans", "major_codes"]
@@ -95,30 +96,47 @@ class Prerequisite(NamedTuple):
 
 def prereq_rows_to_dict(
     rows: List[List[str]],
-) -> Dict[CourseCode, List[List[Prerequisite]]]:
+) -> Dict[str, Dict[CourseCode, List[List[Prerequisite]]]]:
     """
-    Converts prerequisite rows from a CSV to a dictionary mapping between
-    courses and the prerequisites.
+    Converts prerequisite rows from a CSV to a nested dictionary mapping from a
+    term code (e.g. FA12) to a course code to its prerequisites.
 
     The dictionary values are lists of lists. The outer list is a list of
     requirements, like an AND, while each inner list is a list of possible
     courses to satisfy the requirement, like an OR.
     """
-    prereqs: Dict[CourseCode, List[List[Prerequisite]]] = {}
-    for subject, number, prereq_id, pre_sub, pre_num, allow_concurrent in rows:
+    terms: Dict[str, Dict[CourseCode, List[List[Prerequisite]]]] = {}
+    for (
+        term,  # Term Code
+        _,  # Term ID
+        _,  # Course ID
+        subject,  # Course Subject Code
+        number,  # Course Number
+        req_id,  # Prereq Sequence ID
+        _,  # Prereq Course ID
+        req_subj,  # Prereq Subject Code
+        req_num,  # Prereq Course Number
+        _,  # Prereq Minimum Grade Priority
+        _,  # Prereq Minimum Grade
+        allow_concurrent,  # Allow concurrent registration
+    ) in rows:
+        if term not in terms:
+            terms[term] = {}
         course: CourseCode = subject, number
-        prereq = Prerequisite((pre_sub, pre_num), allow_concurrent == "Y")
-        if course not in prereqs:
-            prereqs[course] = []
-        index = int(prereq_id) - 1
-        while len(prereqs[course]) <= index:
-            prereqs[course].append([])
+        prereq = Prerequisite((req_subj, req_num), allow_concurrent == "Y")
+        if course not in terms[term]:
+            terms[term][course] = []
+        if req_id == "":
+            continue
+        index = int(req_id) - 1
+        while len(terms[term][course]) <= index:
+            terms[term][course].append([])
         # Could probably include the allow concurrent registration info here
-        prereqs[course][index].append(prereq)
-    return prereqs
+        terms[term][course][index].append(prereq)
+    return terms
 
 
-_prereqs: Optional[Dict[CourseCode, List[List[Prerequisite]]]] = None
+_prereqs: Optional[Dict[str, Dict[CourseCode, List[List[Prerequisite]]]]] = None
 
 
 def prereqs():
@@ -126,14 +144,15 @@ def prereqs():
     if _prereqs is None:
         _prereqs = prereq_rows_to_dict(
             read_csv_from(
-                "./files/prereqs.csv",
-                "There is no `prereqs.csv` file in the files/ folder. See the README for where to download it from.",
+                "./files/prereqs_fa12.csv",
+                "There is no `prereqs_fa12.csv` file in the files/ folder. See the README for where to download it from.",
                 strip=True,
             )[1:]
         )
         # Fix possible errors in prereqs
-        _prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
-        _prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
+        for term in _prereqs.values():
+            term["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
+            term["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
     return _prereqs
 
 
@@ -205,12 +224,12 @@ class MajorPlans(NamedTuple):
         ]
 
 
-def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
+def plan_rows_to_dict(rows: List[List[str]]) -> Dict[int, Dict[str, MajorPlans]]:
     """
     Converts the academic plans CSV rows into a dictionary of major codes to
     `Major` objects.
     """
-    majors: Dict[str, MajorPlans] = {}
+    years: Dict[int, Dict[str, MajorPlans]] = {}
     for (
         department,  # Department
         major_code,  # Major
@@ -219,25 +238,28 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[str, MajorPlans]:
         units,  # Units
         course_type,  # Course Type
         overlap,  # GE/Major Overlap
-        _,  # Start Year
-        year,  # Year Taken
-        quarter,  # Quarter Taken
+        year,  # Start Year
+        plan_yr,  # Year Taken
+        plan_qtr,  # Quarter Taken
         _,  # Term Taken
     ) in rows:
-        if major_code not in majors:
-            majors[major_code] = MajorPlans(department, major_code, {})
-        if college_code not in majors[major_code].plans:
-            majors[major_code].plans[college_code] = Plan([[] for _ in range(12)])
-        quarter = (int(year) - 1) * 3 + int(quarter) - 1
+        year = int(year)
+        if year not in years:
+            years[year] = {}
+        if major_code not in years[year]:
+            years[year][major_code] = MajorPlans(department, major_code, {})
+        if college_code not in years[year][major_code].plans:
+            years[year][major_code].plans[college_code] = Plan([[] for _ in range(16)])
+        quarter = (int(plan_yr) - 1) * 4 + int(plan_qtr) - 1
         if course_type != "COLLEGE" and course_type != "DEPARTMENT":
             raise TypeError('Course type is neither "COLLEGE" nor "DEPARTMENT"')
-        majors[major_code].plans[college_code].quarters[quarter].append(
+        years[year][major_code].plans[college_code].quarters[quarter].append(
             PlannedCourse(course_title, float(units), course_type, overlap == "Y")
         )
-    return majors
+    return years
 
 
-_major_plans: Optional[Dict[str, MajorPlans]] = None
+_major_plans: Optional[Dict[int, Dict[str, MajorPlans]]] = None
 
 
 def major_plans():
@@ -245,8 +267,8 @@ def major_plans():
     if _major_plans is None:
         _major_plans = plan_rows_to_dict(
             read_csv_from(
-                "./files/academic_plans.csv",
-                "There is no `academic_plans.csv` file in the files/ folder. See the README for where to download it from.",
+                "./files/academic_plans_fa12.csv",
+                "There is no `academic_plans_fa12.csv` file in the files/ folder. See the README for where to download it from.",
                 strip=True,
             )[1:]
         )
@@ -319,4 +341,5 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    print(major_plans()["LN33"].plans["SN"].quarters[9])
+    print(major_plans()[2021]["LN33"].plans["SN"].quarters[9])
+    print(prereqs()["FA21"][("CSE", "12")])
