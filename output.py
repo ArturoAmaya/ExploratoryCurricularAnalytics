@@ -28,7 +28,6 @@ from parse import (
     MajorPlans,
     PlannedCourse,
     Prerequisite,
-    major_plans,
     major_codes,
     prereqs,
 )
@@ -91,12 +90,15 @@ class OutputCourse(NamedTuple):
 
 
 class OutputCourses:
+    term_names = ["FA", "WI", "SP", "S1"]
+
     processed_courses: List[ProcessedCourse]
     current_id: int
     course_ids: Dict[CourseCode, int]
     duplicate_titles: Dict[str, int]
     claimed_ids: Set[CourseCode]
     degree_plan: bool
+    year: int
 
     def __init__(
         self,
@@ -104,9 +106,11 @@ class OutputCourses:
         start_id: int,
         course_ids: Dict[CourseCode, int],
         degree_plan: bool,
+        year: int,
     ) -> None:
         self.processed_courses = processed_courses
         self.degree_plan = degree_plan
+        self.year = year
 
         # 3. Assign course IDs
         self.current_id = start_id
@@ -180,14 +184,18 @@ class OutputCourses:
                         [Prerequisite(prereq, False)],
                         course_title,
                     )
-            elif code in prereqs() and code != ("MATH", "18"):
-                for alternatives in prereqs()[code]:
-                    self.find_prereq(
-                        prereq_ids,
-                        coreq_ids,
-                        alternatives,
-                        term if self.degree_plan else course_title,
-                    )
+            elif code != ("MATH", "18"):
+                reqs = prereqs(
+                    self.term_names[term % 4] + f"{(self.year + term // 4) % 100:02d}"
+                )
+                if code in reqs:
+                    for alternatives in reqs[code]:
+                        self.find_prereq(
+                            prereq_ids,
+                            coreq_ids,
+                            alternatives,
+                            term if self.degree_plan else course_title,
+                        )
 
             if course_title in self.duplicate_titles:
                 self.duplicate_titles[course_title] += 1
@@ -275,8 +283,8 @@ class MajorOutput:
     curriculum: List[PlannedCourse]
     start_id: int
 
-    def __init__(self, major_code: str, start_id: int = 1) -> None:
-        self.plans = major_plans()[major_code]
+    def __init__(self, plans: MajorPlans, start_id: int = 1) -> None:
+        self.plans = plans
         self.course_ids = {}
         self.curriculum = self.plans.curriculum()
         self.start_id = start_id
@@ -347,7 +355,11 @@ class MajorOutput:
                 processed_courses.append(input_course.process())
 
         return OutputCourses(
-            processed_courses, self.start_id, {**self.course_ids}, bool(college)
+            processed_courses,
+            self.start_id,
+            {**self.course_ids},
+            bool(college),
+            self.plans.year,
         )
 
     def output_plan(
@@ -453,8 +465,8 @@ class MajorOutput:
         return csv
 
     @classmethod
-    def from_json(cls, major_code: str, json: CurriculumHash) -> "MajorOutput":
-        output = MajorOutput(major_code)
+    def from_json(cls, plans: MajorPlans, json: CurriculumHash) -> "MajorOutput":
+        output = MajorOutput(plans)
         output.course_ids = {}
         output.start_id = 1
         for course in json["courses"]:
@@ -469,5 +481,10 @@ class MajorOutput:
 
 if __name__ == "__main__":
     import sys
+    from parse import major_plans
 
-    print(MajorOutput(sys.argv[1]).output(sys.argv[2] if len(sys.argv) > 2 else None))
+    print(
+        MajorOutput(major_plans(2021)[sys.argv[1]]).output(
+            sys.argv[2] if len(sys.argv) > 2 else None
+        )
+    )

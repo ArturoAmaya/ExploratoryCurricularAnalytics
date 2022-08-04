@@ -15,7 +15,6 @@ Exports:
     objects, which contains data from the ISIS major codes spreadsheet.
 """
 
-from re import I
 from typing import Dict, List, Literal, NamedTuple, Optional, Set, Tuple
 
 __all__ = ["prereqs", "major_plans", "major_codes"]
@@ -139,7 +138,7 @@ def prereq_rows_to_dict(
 _prereqs: Optional[Dict[str, Dict[CourseCode, List[List[Prerequisite]]]]] = None
 
 
-def prereqs():
+def prereqs(term: str) -> Dict[CourseCode, List[List[Prerequisite]]]:
     global _prereqs
     if _prereqs is None:
         _prereqs = prereq_rows_to_dict(
@@ -149,11 +148,11 @@ def prereqs():
                 strip=True,
             )[1:]
         )
-        # Fix possible errors in prereqs
-        for term in _prereqs.values():
-            term["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
-            term["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
-    return _prereqs
+        # Fix possible errors in prereqs (#52)
+        for term_prereqs in _prereqs.values():
+            term_prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
+            term_prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
+    return _prereqs[term]
 
 
 class PlannedCourse(NamedTuple):
@@ -187,6 +186,7 @@ class MajorPlans(NamedTuple):
     # College codes from least to most weird colleges (see #14)
     least_weird_colleges = ["TH", "WA", "SN", "MU", "FI", "RE", "SI"]
 
+    year: int
     department: str
     major_code: str
     plans: Dict[str, Plan]
@@ -247,7 +247,7 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[int, Dict[str, MajorPlans]]
         if year not in years:
             years[year] = {}
         if major_code not in years[year]:
-            years[year][major_code] = MajorPlans(department, major_code, {})
+            years[year][major_code] = MajorPlans(year, department, major_code, {})
         if college_code not in years[year][major_code].plans:
             years[year][major_code].plans[college_code] = Plan([[] for _ in range(16)])
         quarter = (int(plan_yr) - 1) * 4 + int(plan_qtr) - 1
@@ -262,7 +262,7 @@ def plan_rows_to_dict(rows: List[List[str]]) -> Dict[int, Dict[str, MajorPlans]]
 _major_plans: Optional[Dict[int, Dict[str, MajorPlans]]] = None
 
 
-def major_plans():
+def major_plans(year: int) -> Dict[str, MajorPlans]:
     global _major_plans
     if _major_plans is None:
         _major_plans = plan_rows_to_dict(
@@ -272,7 +272,7 @@ def major_plans():
                 strip=True,
             )[1:]
         )
-    return _major_plans
+    return _major_plans[year]
 
 
 class MajorInfo(NamedTuple):
@@ -341,5 +341,5 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    print(major_plans()[2021]["LN33"].plans["SN"].quarters[9])
-    print(prereqs()["FA21"][("CSE", "12")])
+    print(major_plans(2021)["LN33"].plans["SN"].quarters[9])
+    print(prereqs("FA21")[("CSE", "12")])

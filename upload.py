@@ -58,7 +58,7 @@ class MajorUploader(Session):
         CSV file is uploaded.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code)
+        output = MajorOutput(major_plans(year)[major_code])
         self.upload_curriculum(
             organization_id,
             f"{major_code}-{major.name}",
@@ -97,7 +97,7 @@ class MajorUploader(Session):
         names.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code)
+        output = MajorOutput(major_plans(year)[major_code])
         self.upload_curriculum(
             organization_id,
             f"{year} {major_code}-{major.name}",
@@ -136,7 +136,7 @@ class MajorUploader(Session):
         Similar to `upload_major_json`, but instead edits an existing curriculum.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code, start_id=start_id)
+        output = MajorOutput(major_plans(year)[major_code], start_id=start_id)
         self.edit_curriculum(curriculum_id, output.output_json())
         self.edit_curriculum_metadata(
             curriculum_id,
@@ -179,7 +179,7 @@ def track_uploaded_curricula(path: str) -> Generator[Uploaded, None, None]:
         yield curricula
     finally:
         with open(path, "w") as file:
-            for major_code in major_plans().keys():
+            for major_code in major_plans(2021).keys():
                 curriculum_id = curricula.get(major_code)
                 if curriculum_id is None:
                     file.write(f"{major_code}:\n")
