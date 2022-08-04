@@ -15,6 +15,7 @@ Exports:
     objects, which contains data from the ISIS major codes spreadsheet.
 """
 
+from functools import total_ordering
 from typing import Dict, List, Literal, NamedTuple, Optional, Set, Tuple
 
 __all__ = ["prereqs", "major_plans", "major_codes"]
@@ -93,9 +94,29 @@ class Prerequisite(NamedTuple):
     allow_concurrent: bool
 
 
+@total_ordering
+class TermCode(str):
+    quarters = ["WI", "SP", "S1", "S2", "S3", "SU", "FA"]
+
+    def quarter_value(self) -> int:
+        return TermCode.quarters.index(self[0:2])
+
+    def year(self) -> int:
+        # Assumes 21st century (all the plans we have are in the 21st century)
+        return 2000 + int(self[2:4])
+
+    def __lt__(self, other: str) -> bool:
+        if not isinstance(other, TermCode):
+            raise NotImplemented
+        if self.year() == other.year():
+            return self.quarter_value() < other.quarter_value()
+        else:
+            return self.year() < other.year()
+
+
 def prereq_rows_to_dict(
     rows: List[List[str]],
-) -> Dict[str, Dict[CourseCode, List[List[Prerequisite]]]]:
+) -> Dict[TermCode, Dict[CourseCode, List[List[Prerequisite]]]]:
     """
     Converts prerequisite rows from a CSV to a nested dictionary mapping from a
     term code (e.g. FA12) to a course code to its prerequisites.
@@ -104,7 +125,7 @@ def prereq_rows_to_dict(
     requirements, like an AND, while each inner list is a list of possible
     courses to satisfy the requirement, like an OR.
     """
-    terms: Dict[str, Dict[CourseCode, List[List[Prerequisite]]]] = {}
+    terms: Dict[TermCode, Dict[CourseCode, List[List[Prerequisite]]]] = {}
     for (
         term,  # Term Code
         _,  # Term ID
@@ -119,6 +140,7 @@ def prereq_rows_to_dict(
         _,  # Prereq Minimum Grade
         allow_concurrent,  # Allow concurrent registration
     ) in rows:
+        term = TermCode(term)
         if term not in terms:
             terms[term] = {}
         course: CourseCode = subject, number
@@ -135,7 +157,7 @@ def prereq_rows_to_dict(
     return terms
 
 
-_prereqs: Optional[Dict[str, Dict[CourseCode, List[List[Prerequisite]]]]] = None
+_prereqs: Optional[Dict[TermCode, Dict[CourseCode, List[List[Prerequisite]]]]] = None
 
 
 def prereqs(term: str) -> Dict[CourseCode, List[List[Prerequisite]]]:
@@ -152,6 +174,13 @@ def prereqs(term: str) -> Dict[CourseCode, List[List[Prerequisite]]]:
         for term_prereqs in _prereqs.values():
             term_prereqs["NANO", "102"] = [[Prerequisite(("CHEM", "6C"), False)]]
             term_prereqs["DOC", "2"] = [[Prerequisite(("DOC", "1"), False)]]
+    term = TermCode(term)
+    if term not in _prereqs:
+        first_term = min(_prereqs.keys())
+        if term < first_term:
+            term = first_term
+        else:
+            term = max(_prereqs.keys())
     return _prereqs[term]
 
 
@@ -341,5 +370,5 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    print(" ".join(major_plans(2022).keys()))
-    # print(prereqs("FA21")[("CSE", "12")])
+    # print(" ".join(major_plans(2022).keys()))
+    print(prereqs("SP24")[("CSE", "12")])
