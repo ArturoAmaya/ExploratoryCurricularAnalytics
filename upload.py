@@ -61,7 +61,7 @@ class MajorUploader(Session):
         output = MajorOutput(major_plans(year)[major_code])
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{major.name}",
+            f"{year} {major_code}-{major.name}",
             year,
             (f"{initials}-Curriculum Plan-{major_code}.csv", output.output()),
         )
@@ -166,20 +166,23 @@ class MajorUploader(Session):
 
 
 @contextmanager
-def track_uploaded_curricula(path: str) -> Generator[Uploaded, None, None]:
+def track_uploaded_curricula(year: int) -> Generator[Uploaded, None, None]:
     URL_BASE = "https://curricularanalytics.org/curriculums/"
-    with open(path) as file:
-        curricula: Uploaded = {}
-        for line in file.read().splitlines():
-            major_code, curriculum_id = line.split(":", maxsplit=1)
-            curriculum_id = curriculum_id.strip()
-            if curriculum_id.startswith(URL_BASE):
-                curricula[major_code] = int(curriculum_id[len(URL_BASE) :])
+    curricula: Uploaded = {}
+    try:
+        with open(f"./files/uploaded{year}.yml") as file:
+            for line in file.read().splitlines():
+                major_code, curriculum_id = line.split(":", maxsplit=1)
+                curriculum_id = curriculum_id.strip()
+                if curriculum_id.startswith(URL_BASE):
+                    curricula[major_code] = int(curriculum_id[len(URL_BASE) :])
+    except FileNotFoundError:
+        pass
     try:
         yield curricula
     finally:
-        with open(path, "w") as file:
-            for major_code in major_plans(2021).keys():
+        with open(f"./files/uploaded{year}.yml", "w") as file:
+            for major_code in major_plans(year).keys():
                 curriculum_id = curricula.get(major_code)
                 if curriculum_id is None:
                     file.write(f"{major_code}:\n")
@@ -211,9 +214,7 @@ if __name__ == "__main__":
         type=int,
         help="The ID of the Curricular Analytics organization to add the curriculum to. Default: $ORG_ID",
     )
-    parser.add_argument(
-        "--year", type=int, help="The catalog year. Default: 2021", default=2021
-    )
+    parser.add_argument("--year", type=int, help="The catalog year.")
     parser.add_argument(
         "--initials",
         help="Your initials, to sign the CSV file names. Default: $INITIALS",
@@ -226,7 +227,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--track",
         action="store_true",
-        help="Whether to keep track of uploaded curricula in files/uploaded.yml. Default: don't keep track",
+        help="Whether to keep track of uploaded curricula in files/uploaded[year].yml. Default: don't keep track",
     )
     args = parser.parse_args()
     major_code: str = args.major_code
@@ -235,7 +236,9 @@ if __name__ == "__main__":
     org_id: Optional[int] = args.org
     if org_id is None:
         org_id = int(get_env("ORG_ID"))
-    year: int = args.year
+    year: Optional[int] = args.year
+    if year is None:
+        raise ValueError("Year is required.")
     initials: Optional[str] = args.initials
     if initials is None:
         initials = get_env("INITIALS")
@@ -249,7 +252,7 @@ if __name__ == "__main__":
         )
     )
     if args.track:
-        with track_uploaded_curricula("./files/uploaded.yml") as curricula:
+        with track_uploaded_curricula(year) as curricula:
             if major_code in curricula:
                 raise KeyError(f"{major_code} already uploaded")
             curricula[major_code] = upload()

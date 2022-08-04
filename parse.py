@@ -341,5 +341,5 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    print(major_plans(2021)["LN33"].plans["SN"].quarters[9])
-    print(prereqs("FA21")[("CSE", "12")])
+    print(" ".join(major_plans(2022).keys()))
+    # print(prereqs("FA21")[("CSE", "12")])
