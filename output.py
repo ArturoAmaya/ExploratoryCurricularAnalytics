@@ -48,6 +48,14 @@ unit_overrides: Dict[str, Tuple[CourseCode, float]] = {
 
 
 class ProcessedCourse(NamedTuple):
+    """
+    A record storing parsed course data with errors fixed and exceptions
+    applied.
+
+    Produced from an `InputCourse` in `MajorOutput.get_courses` after parsing a
+    course title into a course code.
+    """
+
     course_title: str
     code: CourseCode
     units: float
@@ -56,6 +64,14 @@ class ProcessedCourse(NamedTuple):
 
 
 class InputCourse(NamedTuple):
+    """
+    A record storing the term index that a course is in so the courses can be
+    stored in a flattened list. `term` is 0 for curricula.
+
+    Initially produced from a `parse.PlannedCourse` in
+    `MajorOutput.get_courses`.
+    """
+
     course: PlannedCourse
     major_course: bool
     term: int
@@ -66,6 +82,16 @@ class InputCourse(NamedTuple):
         course_title: Optional[str] = None,
         units: Optional[float] = None,
     ) -> ProcessedCourse:
+        """
+        Apply necessary modifications to the course object, such as changing its
+        course title or units.
+
+        Changing units fixes common errors, such as MATH 11 being labelled as 4
+        units (it is 5 units).
+
+        Changing the course title is helpful when splitting courses like "PHYS
+        1A/1AL" so that there won't be two courses both named "PHYS 1A/1AL."
+        """
         if course_title is None:
             course_title = self.course.course_title
         if units is None:
@@ -80,6 +106,26 @@ class InputCourse(NamedTuple):
 
 
 class OutputCourse(NamedTuple):
+    """
+    A course output by `OutputCourses`. This contains all the fields necessary
+    for a course row in a curriculum/degree plan CSV file.
+
+    There's a lot of indirections before arriving at this point:
+
+    - `parse.PlannedCourse` directly from academic_plans.csv
+    - `InputCourse` keeps track of a course's term index
+    - `ProcessedCourse` stores a parsed course code and overridden course titles
+      and units
+    - `OutputCourse` (this)
+
+    All these classes help reduce code repetition between outputting a
+    curriculum vs. a degree plan, a specific course code (CSE 11) vs. a general
+    requirement (CSE ELECTIVE) vs. a lab (PHYS 1A/1AL), a CSV vs. JSON file,
+    which each have many similarities. The current implementation is quite hard
+    to understand and hacky, however, and with some retrospect, there's probably
+    a cleaner approach to all this.
+    """
+
     course_id: int
     course_title: str
     code: CourseCode
@@ -90,6 +136,24 @@ class OutputCourse(NamedTuple):
 
 
 class OutputCourses:
+    """
+    Lists courses in a ready-to-go format for creating a CSV or JSON file.
+
+    Why not return a list directly? This intermediate class allows courses to be
+    separated based on whether they're a major or college course because degree
+    plan CSVs specifically have a separate section for "Additional Courses."
+    Maybe I could've instead output a tuple or something depending on what is
+    needed, but in Python it seems easier to me to loop over a list again and
+    only yield what is necessary rather than partition a list beforehand.
+
+    `start_id` is the next unassigned ID that can be assigned to additional
+    courses.
+
+    `course_ids` is a *clone* of that from `MajorOutput` because degree plan
+    additional courses do not share course IDs between each other on Curricular
+    Analytics.
+    """
+
     term_names = ["FA", "WI", "SP", "S1"]
 
     processed_courses: List[ProcessedCourse]
@@ -140,6 +204,26 @@ class OutputCourses:
         alternatives: List[Prerequisite],
         before: Union[int, str],
     ) -> None:
+        """
+        Helper method to find prerequisites and corequisites for a course.
+
+        This takes care to prevent backwards prereqs, where a course that could
+        satisfy the prerequisites for another course shows up *later* in a plan.
+        See #47.
+
+        This also *only* uses the first (i.e. earliest, as
+        `self.processed_courses` is chronological) prerequisite found. It
+        shouldn't matter too much if there are too many prerequisite arrows, but
+        it does affect the complexity score on Curricular Analytics. See #25.
+
+        `prereq_ids` and `coreq_ids` are mutable *references* to a list to which
+        prerequisite course IDs are added.
+
+        `before` is the term index of the course in question for degree plans,
+        or the title of the course for curricula (which do not have terms, but
+        still have an "order" because they're inherited from Marshall's degree
+        plan---this is a hack).
+        """
         # Find first processed course whose code is in `alternatives`
         for course in self.processed_courses:
             if course.code is None:
@@ -161,6 +245,14 @@ class OutputCourses:
     def list_courses(
         self, show_major: Optional[bool] = None
     ) -> Generator[OutputCourse, None, None]:
+        """
+        The methods involved with actually outputting the CSV/JSON file should
+        call this method, yielding `OutputCourse`s.
+
+        `show_major` filters courses by whether they're a major or college
+        requirement. If `show_major` is None or unspecified, all courses will be
+        yielded.
+        """
         for course_title, code, units, major_course, term in self.processed_courses:
             if show_major is not None and major_course != show_major:
                 continue
@@ -225,28 +317,6 @@ CURRICULUM_COLS = 10
 DEGREE_PLAN_COLS = 11
 
 
-def output_header(
-    curriculum: str = "",
-    degree_plan: Optional[str] = None,
-    institution: str = "",
-    degree_type: str = "",
-    system_type: str = "",
-    cip: str = "",
-) -> Generator[List[str], None, None]:
-    """
-    Outputs the header for the CSV file. See Curricular Analytics'
-    documentation for the CSV header format:
-    https://curricularanalytics.org/files.
-    """
-    yield ["Curriculum", curriculum]
-    if degree_plan is not None:
-        yield ["Degree Plan", degree_plan]
-    yield ["Institution", institution]
-    yield ["Degree Type", degree_type]
-    yield ["System Type", system_type]
-    yield ["CIP", cip]
-
-
 def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None, None]:
     """
     Converts a list of lists of fields into lines of CSV records. Yields a
@@ -275,7 +345,10 @@ def rows_to_csv(rows: Iterable[List[str]], columns: int) -> Generator[str, None,
 
 class MajorOutput:
     """
-    Keeps track of the course IDs used by a curriculum.
+    Keeps track of the course IDs used by a curriculum so major courses share
+    the same ID across degree plans. Otherwise, if a degree plan uses an ID for
+    a different course, it renames courses with that ID in all other degree
+    plans and the curriculum in Curricular Analytics.
     """
 
     plans: MajorPlans
@@ -291,6 +364,11 @@ class MajorOutput:
         self.populate_course_ids()
 
     def populate_course_ids(self) -> None:
+        """
+        Assigns IDs to courses with identifiable course codes (e.g. CSE 11, but
+        excluding CSE ELECTIVE). This way, they remain the same across degree
+        plans.
+        """
         for course in self.curriculum:
             parsed = parse_course_name(course.course_title)
             if parsed:
@@ -306,6 +384,10 @@ class MajorOutput:
                         self.start_id += 1
 
     def get_courses(self, college: Optional[str]) -> OutputCourses:
+        """
+        Transforms courses from the academic plans into a nicer format for
+        output.
+        """
         # 1. Get the courses
         course_input: Generator[InputCourse, None, None] = (
             (
@@ -366,23 +448,23 @@ class MajorOutput:
         self, college: Optional[str] = None
     ) -> Generator[List[str], None, None]:
         """
-        Outputs a curriculum or degree plan in Curricular Analytics' format (CSV).
+        Outputs a curriculum or degree plan in Curricular Analytics' CSV format,
+        yielding one row at a time.
 
-        To output a degree plan, specify the college that the degree plan is for. If
-        the college isn't specified, then `output_plan` will output the major's
-        curriculum instead.
+        To output a degree plan, specify the college that the degree plan is
+        for. If the college isn't specified, then `output_plan` will output the
+        major's curriculum instead.
         """
         major_info = major_codes()[self.plans.major_code]
+        yield ["Curriculum", major_info.name]
+        if college:
+            yield ["Degree Plan", f"{major_info.name}/ {college_names[college]}"]
+        yield ["Institution", INSTITUTION]
         # NOTE: Currently just gets the last listed award type (bias towards BS over
         # BA). Will see how to deal with BA vs BS
-        yield from output_header(
-            curriculum=major_info.name,
-            degree_plan=college and f"{major_info.name}/ {college_names[college]}",
-            institution=INSTITUTION,
-            degree_type=list(major_info.award_types)[-1],
-            system_type=SYSTEM_TYPE,
-            cip=major_info.cip_code,
-        )
+        yield ["Degree Type", list(major_info.award_types)[-1]]
+        yield ["System Type", SYSTEM_TYPE]
+        yield ["CIP", major_info.cip_code]
 
         processed = self.get_courses(college)
 
@@ -415,6 +497,12 @@ class MajorOutput:
                 ]
 
     def output_json(self, college: Optional[str] = None) -> Curriculum:
+        """
+        Like `output_plan`, but outputs a JSON-serializable `Curriculum` object
+        instead. This JSON format is what the Curricular Analytics site
+        currently uses when you edit or create a curriculum or degree plan with
+        a GUI.
+        """
         curriculum = Curriculum(
             curriculum_terms=[
                 Term(id=i + 1, curriculum_items=[]) for i in range(12 if college else 1)
@@ -456,6 +544,11 @@ class MajorOutput:
         return curriculum
 
     def output(self, college: Optional[str] = None) -> str:
+        """
+        A helper function that collects the rows from `output_plan` into a
+        single newline-terminated string with the entire CSV. You'll probably
+        want to use this instead of `output_plan`.
+        """
         if college is not None and college not in self.plans.plans:
             raise KeyError(f"No degree plan available for {college}.")
         cols = DEGREE_PLAN_COLS if college else CURRICULUM_COLS
@@ -466,6 +559,12 @@ class MajorOutput:
 
     @classmethod
     def from_json(cls, plans: MajorPlans, json: CurriculumHash) -> "MajorOutput":
+        """
+        Creates a `MajorOutput` using the same course IDs from an existing
+        curriculum or degree plan. This way, modifying a degree plan won't
+        inadvertently change the course data of the curriculum on the Curricular
+        Analytics website.
+        """
         output = MajorOutput(plans)
         output.course_ids = {}
         output.start_id = 1

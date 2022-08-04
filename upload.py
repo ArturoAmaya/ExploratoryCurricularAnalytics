@@ -31,6 +31,13 @@ load_dotenv()
 
 
 class MajorUploader(Session):
+    """
+    Handles getting the Curricular Analytics session tokens from your
+    environment variables or `.env` file for your convenience. This way, you
+    only need to construct a `MajorUploader` and not have to worry about getting
+    the session token yourself.
+    """
+
     def __init__(self) -> None:
         session = os.getenv("CA_SESSION")
         if session is None:
@@ -79,7 +86,7 @@ class MajorUploader(Session):
                 curriculum_id,
                 f"{major_code}/{college_name}",
                 (
-                    f"SY-Degree Plan-{college_name}-{major_code}.csv",
+                    f"{initials}-Degree Plan-{college_name}-{major_code}.csv",
                     output.output(college_code),
                 ),
             )
@@ -167,6 +174,24 @@ class MajorUploader(Session):
 
 @contextmanager
 def track_uploaded_curricula(year: int) -> Generator[Uploaded, None, None]:
+    """
+    Caches the IDs of uploaded curricula on Curricular Analytics in a YAML file
+    at `files/uploaded<year>.yml`.
+
+    Usage:
+
+    ```py
+    with track_uploaded_curricula(year) as curricula:
+        curricula[major_code] = MajorUploader().upload_major_json(
+            major_codes()[major_code], org_id, year
+        )
+    ```
+
+    Inside the `with` block, `curricula` is a dictionary mapping from ISIS major
+    codes to the Curricular Analaytics curriculum ID. Curricula not uploaded to
+    Curricular Analytics do not have an entry in the dictionary. At the end of
+    the `with` block, changes to `curricula` are saved back in the YAML file.
+    """
     URL_BASE = "https://curricularanalytics.org/curriculums/"
     curricula: Uploaded = {}
     try:
