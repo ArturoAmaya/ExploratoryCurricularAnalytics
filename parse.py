@@ -375,5 +375,5 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    # print(" ".join(major_plans(2022).keys()))
-    print(prereqs("SP24")[("CSE", "12")])
+    print(" ".join(major_plans(2020).keys()))
+    # print(prereqs("SP24")[("CSE", "12")])
