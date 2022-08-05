@@ -392,7 +392,12 @@ class MajorOutput:
         course_input: Generator[InputCourse, None, None] = (
             (
                 InputCourse(
-                    course, course.type == "DEPARTMENT" or course.overlaps_ge, i
+                    course,
+                    course.type == "DEPARTMENT" or course.overlaps_ge,
+                    # Move summer sessions to previous quarter, per Carlos'
+                    # request. They tend to be GEs says Arturo, so it shouldn't
+                    # affect prereqs
+                    i - (i + 1) // 4,
                 )
                 for i, quarter in enumerate(self.plans.plans[college].quarters)
                 for course in sorted(

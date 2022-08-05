@@ -199,6 +199,11 @@ class Plan(NamedTuple):
     """
     Represents a college-specific academic plan. Can be used to create degree
     plans for Curricular Analytics.
+
+    `quarters` is always of length 16, with four sequences of
+    fall-winter-spring-summer. Yes, some plans do, namely 2014 CLLA DP and 2020
+    CG35 SN, which are already known to be oddballs. Plans shouldn't be
+    including summer sessions, but some older plans do anyways.
     """
 
     quarters: List[List[PlannedCourse]]
