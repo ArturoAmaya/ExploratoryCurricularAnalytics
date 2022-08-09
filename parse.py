@@ -375,8 +375,8 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    # print(" ".join(major_plans(2018).keys()))
-    print(major_plans(2018)["AN26"].plans["SN"])
+    print(" ".join(major_plans(2017).keys()))
+    # print(major_plans(2018)["AN26"].plans["SN"])
     # for term in range(15, 23):
     #     print(f"SP{term}: {prereqs(f'SP{term}')['MMW', '15']}")
     # print(prereqs("SP24")[("CSE", "12")])
