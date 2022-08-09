@@ -80,7 +80,12 @@ class MajorUploader(Session):
                 f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
             )
         for college_code, college_name in college_names.items():
-            if college_code not in output.plans.plans:
+            # Seventh's 2018 plans are messy, so we've been asked to ignore them
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             self.upload_degree_plan(
                 curriculum_id,
@@ -120,7 +125,11 @@ class MajorUploader(Session):
                 f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
             )
         for college_code, college_name in college_names.items():
-            if college_code not in output.plans.plans:
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             self.upload_degree_plan(
                 curriculum_id,
@@ -155,7 +164,11 @@ class MajorUploader(Session):
         plan_ids = self.get_degree_plans(curriculum_id)
         for college_code, college_name in college_names.items():
             plan_name = f"{major_code}/{college_name}"
-            if college_code not in output.plans.plans:
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             if plan_name in plan_ids:
                 self.edit_degree_plan(
