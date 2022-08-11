@@ -2,7 +2,7 @@ from typing import Dict
 from api import Session
 
 from college_names import college_names
-from parse import major_codes
+from parse import major_codes, major_plans
 
 
 def get_plan_id(
@@ -23,12 +23,14 @@ if __name__ == "__main__":
     mode = sys.argv[1]
     major_code = sys.argv[2]
     college_code = sys.argv[3] if len(sys.argv) >= 4 else None
+    year = 2021
 
-    with track_uploaded_curricula("./files/uploaded.yml") as curricula:
+    with track_uploaded_curricula(year) as curricula:
         if mode == "edit":
             if college_code:
                 output = MajorOutput.from_json(
-                    major_code, session.get_curriculum(curricula[major_code])
+                    major_plans(year)[major_code],
+                    session.get_curriculum(curricula[major_code]),
                 )
                 plan_id = get_plan_id(session, curricula, major_code, college_code)
                 session.edit_degree_plan(plan_id, output.output_json(college_code))
@@ -36,7 +38,8 @@ if __name__ == "__main__":
             else:
                 session.edit_major(
                     curricula[major_code],
-                    major_codes[major_code],
+                    major_codes()[major_code],
+                    year,
                     start_id=600,
                     log=True,
                 )

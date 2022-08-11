@@ -2,3 +2,4 @@ __pycache__
 .env
 *.sh
 *.txt
+*.tmp

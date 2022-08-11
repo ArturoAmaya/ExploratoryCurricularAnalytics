@@ -31,6 +31,13 @@ load_dotenv()
 
 
 class MajorUploader(Session):
+    """
+    Handles getting the Curricular Analytics session tokens from your
+    environment variables or `.env` file for your convenience. This way, you
+    only need to construct a `MajorUploader` and not have to worry about getting
+    the session token yourself.
+    """
+
     def __init__(self) -> None:
         session = os.getenv("CA_SESSION")
         if session is None:
@@ -58,10 +65,10 @@ class MajorUploader(Session):
         CSV file is uploaded.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code)
+        output = MajorOutput(major_plans(year)[major_code])
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{major.name}",
+            f"{year} {major_code}-{major.name}",
             year,
             (f"{initials}-Curriculum Plan-{major_code}.csv", output.output()),
         )
@@ -73,13 +80,18 @@ class MajorUploader(Session):
                 f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
             )
         for college_code, college_name in college_names.items():
-            if college_code not in output.plans.plans:
+            # Seventh's 2018 plans are messy, so we've been asked to ignore them
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             self.upload_degree_plan(
                 curriculum_id,
                 f"{major_code}/{college_name}",
                 (
-                    f"SY-Degree Plan-{college_name}-{major_code}.csv",
+                    f"{initials}-Degree Plan-{college_name}-{major_code}.csv",
                     output.output(college_code),
                 ),
             )
@@ -97,10 +109,10 @@ class MajorUploader(Session):
         names.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code)
+        output = MajorOutput(major_plans(year)[major_code])
         self.upload_curriculum(
             organization_id,
-            f"{major_code}-{major.name}",
+            f"{year} {major_code}-{major.name}",
             year,
             output.output_json(),
             major.cip_code,
@@ -113,7 +125,11 @@ class MajorUploader(Session):
                 f"[{major_code}] Curriculum URL: https://curricularanalytics.org/curriculums/{curriculum_id}"
             )
         for college_code, college_name in college_names.items():
-            if college_code not in output.plans.plans:
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             self.upload_degree_plan(
                 curriculum_id,
@@ -125,23 +141,34 @@ class MajorUploader(Session):
         return curriculum_id
 
     def edit_major(
-        self, curriculum_id: int, major: MajorInfo, start_id: int = 1, log: bool = False
+        self,
+        curriculum_id: int,
+        major: MajorInfo,
+        year: int,
+        start_id: int = 1,
+        log: bool = False,
     ) -> int:
         """
         Similar to `upload_major_json`, but instead edits an existing curriculum.
         """
         major_code = major.isis_code
-        output = MajorOutput(major_code, start_id=start_id)
+        output = MajorOutput(major_plans(year)[major_code], start_id=start_id)
         self.edit_curriculum(curriculum_id, output.output_json())
         self.edit_curriculum_metadata(
-            curriculum_id, name=f"{major_code}-{major.name}", cip_code=major.cip_code
+            curriculum_id,
+            name=f"{year} {major_code}-{major.name}",
+            cip_code=major.cip_code,
         )
         if log:
             print(f"[{major_code}] Curriculum edited")
         plan_ids = self.get_degree_plans(curriculum_id)
         for college_code, college_name in college_names.items():
             plan_name = f"{major_code}/{college_name}"
-            if college_code not in output.plans.plans:
+            if (
+                college_code not in output.plans.plans
+                or college_code == "SN"
+                and year < 2020
+            ):
                 continue
             if plan_name in plan_ids:
                 self.edit_degree_plan(
@@ -159,20 +186,41 @@ class MajorUploader(Session):
 
 
 @contextmanager
-def track_uploaded_curricula(path: str) -> Generator[Uploaded, None, None]:
+def track_uploaded_curricula(year: int) -> Generator[Uploaded, None, None]:
+    """
+    Caches the IDs of uploaded curricula on Curricular Analytics in a YAML file
+    at `files/uploaded<year>.yml`.
+
+    Usage:
+
+    ```py
+    with track_uploaded_curricula(year) as curricula:
+        curricula[major_code] = MajorUploader().upload_major_json(
+            major_codes()[major_code], org_id, year
+        )
+    ```
+
+    Inside the `with` block, `curricula` is a dictionary mapping from ISIS major
+    codes to the Curricular Analaytics curriculum ID. Curricula not uploaded to
+    Curricular Analytics do not have an entry in the dictionary. At the end of
+    the `with` block, changes to `curricula` are saved back in the YAML file.
+    """
     URL_BASE = "https://curricularanalytics.org/curriculums/"
-    with open(path) as file:
-        curricula: Uploaded = {}
-        for line in file.read().splitlines():
-            major_code, curriculum_id = line.split(":", maxsplit=1)
-            curriculum_id = curriculum_id.strip()
-            if curriculum_id.startswith(URL_BASE):
-                curricula[major_code] = int(curriculum_id[len(URL_BASE) :])
+    curricula: Uploaded = {}
+    try:
+        with open(f"./files/uploaded{year}.yml") as file:
+            for line in file.read().splitlines():
+                major_code, curriculum_id = line.split(":", maxsplit=1)
+                curriculum_id = curriculum_id.strip()
+                if curriculum_id.startswith(URL_BASE):
+                    curricula[major_code] = int(curriculum_id[len(URL_BASE) :])
+    except FileNotFoundError:
+        pass
     try:
         yield curricula
     finally:
-        with open(path, "w") as file:
-            for major_code in major_plans.keys():
+        with open(f"./files/uploaded{year}.yml", "w") as file:
+            for major_code in major_plans(year).keys():
                 curriculum_id = curricula.get(major_code)
                 if curriculum_id is None:
                     file.write(f"{major_code}:\n")
@@ -204,9 +252,7 @@ if __name__ == "__main__":
         type=int,
         help="The ID of the Curricular Analytics organization to add the curriculum to. Default: $ORG_ID",
     )
-    parser.add_argument(
-        "--year", type=int, help="The catalog year. Default: 2021", default=2021
-    )
+    parser.add_argument("--year", type=int, help="The catalog year.")
     parser.add_argument(
         "--initials",
         help="Your initials, to sign the CSV file names. Default: $INITIALS",
@@ -219,30 +265,32 @@ if __name__ == "__main__":
     parser.add_argument(
         "--track",
         action="store_true",
-        help="Whether to keep track of uploaded curricula in files/uploaded.yml. Default: don't keep track",
+        help="Whether to keep track of uploaded curricula in files/uploaded[year].yml. Default: don't keep track",
     )
     args = parser.parse_args()
     major_code: str = args.major_code
-    if major_code not in major_codes:
+    if major_code not in major_codes():
         raise KeyError(f"{major_code} is not a major code that I know of.")
     org_id: Optional[int] = args.org
     if org_id is None:
         org_id = int(get_env("ORG_ID"))
-    year: int = args.year
+    year: Optional[int] = args.year
+    if year is None:
+        raise ValueError("Year is required.")
     initials: Optional[str] = args.initials
     if initials is None:
         initials = get_env("INITIALS")
     upload = lambda: (
         MajorUploader().upload_major_json(
-            major_codes[major_code], org_id, year, log=True
+            major_codes()[major_code], org_id, year, log=True
         )
         if args.json
         else MajorUploader().upload_major(
-            major_codes[major_code], org_id, year, initials, log=True
+            major_codes()[major_code], org_id, year, initials, log=True
         )
     )
     if args.track:
-        with track_uploaded_curricula("./files/uploaded.yml") as curricula:
+        with track_uploaded_curricula(year) as curricula:
             if major_code in curricula:
                 raise KeyError(f"{major_code} already uploaded")
             curricula[major_code] = upload()
