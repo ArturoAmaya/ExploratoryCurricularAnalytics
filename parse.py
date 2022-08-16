@@ -375,8 +375,11 @@ def major_codes():
 
 
 if __name__ == "__main__":
-    print(" ".join(major_plans(2019).keys()))
-    # print(major_plans(2018)["AN26"].plans["SN"])
-    # for term in range(15, 23):
-    #     print(f"SP{term}: {prereqs(f'SP{term}')['MMW', '15']}")
-    # print(prereqs("SP24")[("CSE", "12")])
+    # print(' '.join(set(major.department for major in major_codes().values())))
+    print(
+        [
+            major.isis_code
+            for major in major_codes().values()
+            if major.department == "BIOL"
+        ]
+    )
