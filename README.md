@@ -1,3 +1,6 @@
+# Hi!
+If you're here for newer stuff, head on over to [Sean's fork of this repo](https://github.com/SheepTester-forks/ExploratoryCurricularAnalytics). It's newer, faster, snazzier and has a lot more features as well as executive decisions and bugfixes we've made since Jun 2022 about parsing plans. If you just want the original parsing stuff or want to get started doing this at you own institution, check here.
+
 ## Setup
 
 [`parse.py`](parse.py) expects certain files in the `files/` directory. Download them from our shared Google Drive folder.
