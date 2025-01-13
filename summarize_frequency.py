@@ -34,6 +34,8 @@ def main():
                     continue
                 if course_code not in course_offerings:
                     course_offerings[course_code] = set()
+                if term == "Total":
+                    continue
                 term = TermCode(term)
                 course_offerings[course_code].add(term)
                 all_terms.add(term)

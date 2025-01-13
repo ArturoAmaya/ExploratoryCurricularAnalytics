@@ -1,97 +1,122 @@
-using CurricularAnalytics
+module Metrics
 
-colleges = ["RE", "MU", "TH", "WA", "FI", "SI", "SN"]
+include("Output.jl")
+include("Utils.jl")
 
-courses = Dict()
+import CurricularAnalytics: basic_metrics, Course, course_from_id, Curriculum, extraneous_requisites
+import .Output: colleges, output, plans, termname
+import .Utils: convert, writerow
 
-mutable struct CourseStats
-  max_centrality::Int
-  max_centrality_major::String
-end
+open("./files/metrics_fa12.csv", "w") do file
+  writerow(file, [
+    "Year",
+    "Major",
+    "College",
+    # Views
+    "Complexity score",
+    "Units #",
+    "Units in major #",
+    "Units not in major #",
+    "Longest path #",
+    "Longest path courses",
+    "Highest complexity #",
+    "Highest complexity name",
+    "Highest centrality #",
+    "Highest centrality name",
+    "Highest term unit load",
+    "Highest term unit load name",
+    "Lowest term unit load",
+    "Lowest term unit load name",
+    "# redundant prereqs",
+    "Redundant prereqs",
+    "% of courses with prerequisites",
+    "% of units in major",
+    # Flags
+    "Under 180 units?",
+    "Over 200 units?",
+    "Has > 16-unit term?",
+    "Has < 12-unit term?",
+    "Has > 6 unit difference across colleges?",
+  ])
 
-output = open("./files/metrics.csv", "w")
-write(output, "Major,College,Number of GEs,Complexity,Max centrality,Max centrality course,Longest path,Elective units\n")
-flush(output)
-
-iselective(course::Course) = occursin(r"\belective\b"i, course.name) && !occursin(r"\bmuir\b"i, course.name)
-
-for major in readdir("./files/output/")
-  for college in colleges
-    print("\r$major $college")
-    plan = nothing
-    try
-      plan = read_csv("./files/output/$major/$college.csv")
-    catch error
-      if error isa SystemError
-        # Ignore if college degree plan doesn't exist
-        continue
-      else
-        throw(error)
-      end
+  # idk if Julia supports infinite ranges
+  for year in 2015:2050
+    if year ∉ keys(plans)
+      break
     end
-    # Convert to curriculum
-    curriculum = Curriculum(plan.name, [course for term in plan.terms for course in term.courses])
-    try
-      basic_metrics(curriculum)
-    catch error
-      # BoundsError: attempt to access 0-element Vector{Vector{Course}} at index [1]
-      # For curricula like AN26 with no prerequisites, presumably
-      if !(error isa BoundsError)
-        throw(error)
-      end
-    end
+    for major in sort(collect(keys(plans[year])))
+      degree_plans = output(year, major)
+      plan_units = [plan.credit_hours for plan in values(degree_plans)]
 
-    write(output, "$major,$college")
-    ges = []
-    electives = 0
-    try
-      # UndefRefError: access to undefined reference
-      # plan.additional_courses doesn't exist for PS33 MU
-      ges = filter(plan.additional_courses) do course
-        # Removes: ELECTIVE, UD ELECTIVE, UD AHI or UD ELECTIVE, Elective
-        # Does not remove: MUIR UD Elective,
-        !iselective(course)
-      end
-      electives = sum((course.credit_hours for course in plan.additional_courses if iselective(course)), init=0)
-    catch error
-      if !(error isa UndefRefError)
-        throw(error)
-      end
-    end
-    write(output, ",$(length(ges))")
-    write(output, ",$(curriculum.metrics["complexity"][1])")
-    write(output, ",$(curriculum.metrics["max. centrality"])")
-    write(output, ",$(curriculum.metrics["max. centrality courses"][1].name)")
-    write(output, isempty(curriculum.metrics["longest paths"]) ? "," : ",$(length(curriculum.metrics["longest paths"][1]))")
-    write(output, ",$electives")
-    write(output, "\n")
-    flush(output)
+      for college in colleges
+        # Ignoring Seventh before 2020 because its plans were scuffed (and it
+        # didn't exist)
+        if college ∉ keys(degree_plans) || college == "SN" && year < 2020
+          continue
+        end
 
-    for (i, course) in enumerate(curriculum.courses)
-      if isempty(course.prefix)
-        continue
-      end
-      course_code = "$(course.prefix) $(course.num)"
-      course_centrality = centrality(curriculum, i)
-      stats = get!(courses, course_code) do
-        CourseStats(course_centrality, "$major $college")
-      end
-      if course_centrality > stats.max_centrality
-        stats.max_centrality = course_centrality
-        stats.max_centrality_major = "$major $college"
+        plan = degree_plans[college]
+        curriculum = convert(Curriculum, plan)
+        try
+          basic_metrics(curriculum)
+        catch error
+          # BoundsError: attempt to access 0-element Vector{Vector{Course}} at
+          # index [1] For curricula like AN26 with no prerequisites, presumably
+          if !(error isa BoundsError)
+            throw(error)
+          end
+        end
+
+        longest_path = if isempty(curriculum.metrics["longest paths"])
+          Course[]
+        else
+          curriculum.metrics["longest paths"][1]
+        end
+        major_units = sum(
+          course.credit_hours
+          for course in curriculum.courses
+          if course.institution == "DEPARTMENT";
+          init=0
+        )
+        min_term_units, max_term_units = extrema(term.credit_hours for term in plan.terms)
+
+        redundant_reqs = extraneous_requisites(curriculum)
+
+        writerow(file, String[
+          string(year), # Year
+          major, # Major
+          college, # College
+          # Views
+          string(curriculum.metrics["complexity"][1]), # Complexity score
+          string(plan.credit_hours), # Units #
+          string(major_units), # Units in major #
+          string(plan.credit_hours - major_units), # Units not in major #
+          string(length(longest_path)), # Longest path #
+          string(join((course.name for course in longest_path), " → ")), # Longest path courses
+          string(curriculum.metrics["max. complexity"]), # Highest complexity #
+          curriculum.metrics["max. complexity courses"][1].name, # Highest complexity name
+          string(curriculum.metrics["max. centrality"]), # Highest centrality #
+          curriculum.metrics["max. centrality courses"][1].name, # Highest centrality name
+          string(max_term_units), # Highest term unit load
+          termname(year, findfirst(term.credit_hours == max_term_units for term in plan.terms)), # Highest term unit load name
+          string(min_term_units), # Lowest term unit load
+          termname(year, findfirst(term.credit_hours == min_term_units for term in plan.terms)), # Lowest term unit load name
+          string(length(redundant_reqs)), # # redundant prereqs
+          join(("$(course_from_id(curriculum, prereq).name) → $(course_from_id(curriculum, course).name)" for (prereq, course) in redundant_reqs), ", "), # Redundant prereqs
+          string(count(curriculum.courses) do course
+            !isempty(course.requisites)
+          end / length(curriculum.courses)), # % of courses with prerequisites
+          string(major_units / plan.credit_hours), # % of units in major
+          # Flags
+          string(plan.credit_hours < 180), # Under 180 units?
+          string(plan.credit_hours > 200), # Over 200 units?
+          string(any(term.credit_hours > 16 for term in plan.terms)), # Has > 16-unit term?
+          string(any(term.credit_hours < 12 for term in plan.terms)), # Has < 12-unit term?
+          string(maximum(plan_units) - minimum(plan_units) > 6), # Has > 6 unit difference across colleges?
+        ])
       end
     end
   end
 end
 
-close(output)
-println()
-
-open("./files/courses.csv", "w") do file
-  write(file, "Course,Max centrality,Major with max centrality\n")
-
-  for course_code in sort(collect(keys(courses)))
-    stats = courses[course_code]
-    write(file, "$course_code,$(stats.max_centrality),$(stats.max_centrality_major)\n")
-  end
 end
